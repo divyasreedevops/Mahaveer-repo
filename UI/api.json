@@ -1,0 +1,775 @@
+{
+  "apiDocumentation": {
+    "version": "1.0",
+    "baseUrl": "https://localhost:7212",
+    "description": "PharmaCare Backend API Documentation with example payloads, responses, and parameters",
+    "endpoints": {
+      "authentication": {
+        "adminLogin": {
+          "method": "POST",
+          "path": "/Login/admin",
+          "description": "Authenticate admin user",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "username": "admin_user",
+            "password": "securePassword123"
+          },
+          "responses": {
+            "200_success": {
+              "message": "Login successful",
+              "isAuthenticated": true
+            },
+            "400_badRequest": {
+              "message": "Username and password are required"
+            },
+            "401_unauthorized": {
+              "message": "Invalid credentials",
+              "isAuthenticated": false
+            },
+            "500_serverError": {
+              "message": "An error occurred during login"
+            }
+          }
+        },
+        "logout": {
+          "method": "POST",
+          "path": "/Login/logout",
+          "description": "Logout current user",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": null,
+          "responses": {
+            "200_success": {
+              "message": "Logout successful"
+            }
+          }
+        }
+      },
+      "patients": {
+        "getPatientsByStatus": {
+          "method": "GET",
+          "path": "/Patient/status/{status}",
+          "description": "Retrieve patients filtered by registration status",
+          "pathParameters": {
+            "status": {
+              "type": "string",
+              "required": true,
+              "description": "Registration status filter",
+              "examples": ["Pending", "Approved", "Rejected"]
+            }
+          },
+          "responses": {
+            "200_success": [
+              {
+                "id": 1,
+                "patientId": "PC001234",
+                "fullName": "John Doe",
+                "mobileNumber": "9876543210",
+                "email": "john.doe@example.com",
+                "aadharNumber": "123456789012",
+                "dob": "1990-05-15T00:00:00",
+                "registrationDate": "2026-02-01T10:30:00",
+                "registrationStatus": "Pending",
+                "status": 1,
+                "createdBy": 1,
+                "createdDate": "2026-02-01T10:30:00",
+                "updatedDate": "2026-02-01T10:30:00",
+                "updatedBy": 1
+              },
+              {
+                "id": 2,
+                "patientId": "PC001235",
+                "fullName": "Jane Smith",
+                "mobileNumber": "9876543211",
+                "email": "jane.smith@example.com",
+                "aadharNumber": "123456789013",
+                "dob": "1985-08-22T00:00:00",
+                "registrationDate": "2026-02-02T14:20:00",
+                "registrationStatus": "Approved",
+                "status": 1,
+                "createdBy": 1,
+                "createdDate": "2026-02-02T14:20:00",
+                "updatedDate": "2026-02-03T09:15:00",
+                "updatedBy": 1
+              }
+            ],
+            "400_badRequest": {
+              "message": "status cannot be empty"
+            },
+            "500_serverError": {
+              "message": "An error occurred while fetching patients"
+            }
+          }
+        },
+        "updatePatient": {
+          "method": "POST",
+          "path": "/Patient/Update",
+          "description": "Update patient information",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "id": 1,
+            "patientId": "PC001234",
+            "fullName": "John Doe Updated",
+            "mobileNumber": "9876543210",
+            "email": "john.updated@example.com",
+            "aadharNumber": "123456789012",
+            "dob": "1990-05-15T00:00:00",
+            "registrationDate": "2026-02-01T10:30:00",
+            "registrationStatus": "Approved",
+            "status": 1,
+            "createdBy": 1,
+            "createdDate": "2026-02-01T10:30:00",
+            "updatedDate": "2026-02-05T15:30:00",
+            "updatedBy": 1
+          },
+          "responses": {
+            "200_success": {
+              "message": "Patient updated successfully"
+            },
+            "400_badRequest": {
+              "message": "Name, mobile number, and Aadhar number are required"
+            },
+            "404_notFound": {
+              "message": "Patient not found"
+            },
+            "409_conflict": {
+              "message": "Aadhaar number already exists"
+            },
+            "500_serverError": {
+              "message": "An error occurred while saving patient"
+            }
+          }
+        },
+        "registerPatient": {
+          "method": "POST",
+          "path": "/Patient/Register",
+          "description": "Send OTP for patient registration",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "mobileNumber": "9876543210"
+          },
+          "responses": {
+            "200_success": {
+              "message": "OTP sent successfully",
+              "mobileNumber": "9876543210",
+              "otp": "123456"
+            },
+            "400_badRequest": {
+              "message": "Mobile number is required"
+            }
+          }
+        },
+        "verifyOtp": {
+          "method": "POST",
+          "path": "/Patient/verify",
+          "description": "Verify OTP and complete patient registration or login",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "mobileNumber": "9876543210",
+            "email": "patient@example.com",
+            "otp": "123456"
+          },
+          "responses": {
+            "200_newRegistration": {
+              "message": "Patient registered successfully",
+              "patientId": "PC001236"
+            },
+            "200_existingLogin": {
+              "message": "Login Successful",
+              "patientId": "PC001236"
+            },
+            "200_invalidOtp": {
+              "message": "Invalid OTP",
+              "isValid": false
+            },
+            "400_badRequest": {
+              "message": "Mobile number and OTP are required"
+            },
+            "500_serverError": {
+              "message": "Something went wrong"
+            }
+          }
+        },
+        "updateRegistrationStatus": {
+          "method": "POST",
+          "path": "/Patient/UpdateStatus",
+          "description": "Update patient registration status",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "id": 1,
+            "patientId": "PC001234",
+            "registrationStatus": "Approved",
+            "fullName": "John Doe",
+            "mobileNumber": "9876543210",
+            "email": "john.doe@example.com",
+            "aadharNumber": "123456789012"
+          },
+          "responses": {
+            "200_success": {
+              "message": "Registration status updated successfully"
+            },
+            "400_badRequest": {
+              "message": "Id, Registration status, and PatientId are required"
+            },
+            "400_invalidStatus": {
+              "message": "Invalid registration status"
+            },
+            "404_notFound": {
+              "message": "Patient not found"
+            },
+            "500_serverError": {
+              "message": "An error occurred while saving patient"
+            }
+          }
+        },
+        "getPatientByMobileNumber": {
+          "method": "GET",
+          "path": "/Patient/GetPatientByMobileNumber",
+          "description": "Retrieve patient details by mobile number",
+          "queryParameters": {
+            "mobile": {
+              "type": "string",
+              "required": true,
+              "description": "Patient mobile number",
+              "example": "9876543210"
+            }
+          },
+          "exampleUrl": "/Patient/GetPatientByMobileNumber?mobile=9876543210",
+          "responses": {
+            "200_success": {
+              "id": 1,
+              "patientId": "PC001234",
+              "fullName": "John Doe",
+              "mobileNumber": "9876543210",
+              "email": "john.doe@example.com",
+              "aadharNumber": "123456789012",
+              "dob": "1990-05-15T00:00:00",
+              "registrationDate": "2026-02-01T10:30:00",
+              "registrationStatus": "Approved",
+              "status": 1,
+              "createdBy": 1,
+              "createdDate": "2026-02-01T10:30:00",
+              "updatedDate": "2026-02-01T10:30:00",
+              "updatedBy": 1
+            },
+            "400_badRequest": {
+              "message": "Mobile number is required"
+            },
+            "404_notFound": {
+              "message": "Patient not found"
+            }
+          }
+        }
+      },
+      "inventory": {
+        "getInventoryList": {
+          "method": "GET",
+          "path": "/Inventory/GetInventoryList",
+          "description": "Retrieve all inventory items",
+          "responses": {
+            "200_success": [
+              {
+                "id": 1,
+                "name": "Paracetamol",
+                "type": "Tablet",
+                "disease": "Fever",
+                "dosageValue": 500.0,
+                "dosageUnits": "mg",
+                "quantityValue": 10,
+                "quantityUnits": "tablets",
+                "mrp": 50.00,
+                "discount": 5.00,
+                "finalPrice": 45.00,
+                "status": 1,
+                "createdBy": 1,
+                "createdDate": "2026-01-15T08:00:00",
+                "updatedDate": "2026-02-01T10:00:00",
+                "updatedBy": 1
+              },
+              {
+                "id": 2,
+                "name": "Amoxicillin",
+                "type": "Capsule",
+                "disease": "Bacterial Infection",
+                "dosageValue": 250.0,
+                "dosageUnits": "mg",
+                "quantityValue": 15,
+                "quantityUnits": "capsules",
+                "mrp": 120.00,
+                "discount": 10.00,
+                "finalPrice": 108.00,
+                "status": 1,
+                "createdBy": 1,
+                "createdDate": "2026-01-20T09:30:00",
+                "updatedDate": "2026-02-01T10:00:00",
+                "updatedBy": 1
+              },
+              {
+                "id": 3,
+                "name": "Ibuprofen",
+                "type": "Syrup",
+                "disease": "Pain/Inflammation",
+                "dosageValue": 100.0,
+                "dosageUnits": "mg/5ml",
+                "quantityValue": 100,
+                "quantityUnits": "ml",
+                "mrp": 85.00,
+                "discount": 7.50,
+                "finalPrice": 77.50,
+                "status": 1,
+                "createdBy": 1,
+                "createdDate": "2026-01-25T11:00:00",
+                "updatedDate": "2026-02-01T10:00:00",
+                "updatedBy": 1
+              }
+            ],
+            "500_serverError": {
+              "message": "An error occurred while fetching inventory data"
+            }
+          }
+        },
+        "saveInventoryItems": {
+          "method": "POST",
+          "path": "/Inventory/save",
+          "description": "Save or update inventory items in bulk",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": [
+            {
+              "id": 0,
+              "name": "Cetirizine",
+              "type": "Tablet",
+              "disease": "Allergy",
+              "dosageValue": 10.0,
+              "dosageUnits": "mg",
+              "quantityValue": 10,
+              "quantityUnits": "tablets",
+              "mrp": 40.00,
+              "discount": 4.00,
+              "finalPrice": 36.00,
+              "status": 1,
+              "createdBy": 1,
+              "createdDate": "2026-02-05T10:00:00",
+              "updatedDate": "2026-02-05T10:00:00",
+              "updatedBy": 1
+            },
+            {
+              "id": 1,
+              "name": "Paracetamol",
+              "type": "Tablet",
+              "disease": "Fever",
+              "dosageValue": 650.0,
+              "dosageUnits": "mg",
+              "quantityValue": 15,
+              "quantityUnits": "tablets",
+              "mrp": 60.00,
+              "discount": 6.00,
+              "finalPrice": 54.00,
+              "status": 1,
+              "createdBy": 1,
+              "createdDate": "2026-01-15T08:00:00",
+              "updatedDate": "2026-02-05T10:00:00",
+              "updatedBy": 1
+            }
+          ],
+          "responses": {
+            "200_success": {
+              "message": "Items saved successfully",
+              "count": 2
+            },
+            "400_badRequest": {
+              "message": "At least one item is required"
+            },
+            "500_serverError": {
+              "message": "An error occurred while saving items"
+            }
+          }
+        }
+      },
+      "users": {
+        "createUser": {
+          "method": "POST",
+          "path": "/User/CreateUser",
+          "description": "Create a new user account",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "id": 0,
+            "firstname": "John",
+            "lastname": "Smith",
+            "username": "john.smith",
+            "password": "SecurePassword123!",
+            "email": "john.smith@pharmacare.com",
+            "role": "Admin",
+            "status": 1
+          },
+          "responses": {
+            "200_success": {
+              "message": "User created successfully"
+            },
+            "400_badRequest": {
+              "message": "Username and password are required"
+            },
+            "500_serverError": {
+              "message": "An error occurred while creating user"
+            }
+          }
+        }
+      },
+      "otp": {
+        "sendOtp": {
+          "method": "POST",
+          "path": "/Otp/send",
+          "description": "Send OTP to mobile number",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "mobileNumber": "9876543210"
+          },
+          "responses": {
+            "200_success": {
+              "message": "OTP sent successfully",
+              "mobileNumber": "9876543210"
+            },
+            "400_badRequest": {
+              "message": "Mobile number is required"
+            }
+          }
+        },
+        "verifyOtp": {
+          "method": "POST",
+          "path": "/Otp/verify",
+          "description": "Verify OTP for mobile number",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "requestBody": {
+            "mobileNumber": "9876543210",
+            "otp": "123456"
+          },
+          "responses": {
+            "200_success": {
+              "message": "OTP verified successfully",
+              "isValid": true
+            },
+            "200_invalidOtp": {
+              "message": "Invalid OTP",
+              "isValid": false
+            },
+            "400_badRequest": {
+              "message": "Mobile number and OTP are required"
+            }
+          }
+        }
+      }
+    },
+    "commonErrorResponses": {
+      "400_badRequest": {
+        "description": "Invalid request parameters or missing required fields",
+        "example": {
+          "message": "Validation error description"
+        }
+      },
+      "401_unauthorized": {
+        "description": "Authentication failed or credentials invalid",
+        "example": {
+          "message": "Invalid credentials"
+        }
+      },
+      "404_notFound": {
+        "description": "Requested resource not found",
+        "example": {
+          "message": "Resource not found"
+        }
+      },
+      "409_conflict": {
+        "description": "Conflict with existing resource",
+        "example": {
+          "message": "Resource already exists"
+        }
+      },
+      "500_serverError": {
+        "description": "Internal server error",
+        "example": {
+          "message": "An error occurred while processing the request"
+        }
+      }
+    },
+    "dataModels": {
+      "Patient": {
+        "description": "Basic patient registration model",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "required": true,
+            "example": "9876543210"
+          },
+          "email": {
+            "type": "string",
+            "required": false,
+            "example": "patient@example.com"
+          },
+          "otp": {
+            "type": "string",
+            "required": true,
+            "example": "123456"
+          }
+        }
+      },
+      "PatientDetails": {
+        "description": "Detailed patient information",
+        "properties": {
+          "id": {
+            "type": "long",
+            "description": "Database identifier"
+          },
+          "patientId": {
+            "type": "string",
+            "description": "Unique patient identifier",
+            "example": "PC001234"
+          },
+          "fullName": {
+            "type": "string",
+            "required": true,
+            "example": "John Doe"
+          },
+          "mobileNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com"
+          },
+          "aadharNumber": {
+            "type": "string",
+            "required": true,
+            "example": "123456789012"
+          },
+          "dob": {
+            "type": "datetime",
+            "example": "1990-05-15T00:00:00"
+          },
+          "registrationDate": {
+            "type": "datetime",
+            "example": "2026-02-01T10:30:00"
+          },
+          "registrationStatus": {
+            "type": "string",
+            "enum": ["Pending", "Approved", "Rejected"],
+            "example": "Pending"
+          },
+          "status": {
+            "type": "int",
+            "description": "Active status (0=Inactive, 1=Active)"
+          },
+          "createdBy": {
+            "type": "long",
+            "description": "User ID who created the record"
+          },
+          "createdDate": {
+            "type": "datetime"
+          },
+          "updatedDate": {
+            "type": "datetime"
+          },
+          "updatedBy": {
+            "type": "long",
+            "description": "User ID who last updated the record"
+          }
+        }
+      },
+      "InventoryItem": {
+        "description": "Medicine/product inventory item",
+        "properties": {
+          "id": {
+            "type": "long",
+            "description": "Database identifier (0 for new items)"
+          },
+          "name": {
+            "type": "string",
+            "required": true,
+            "example": "Paracetamol"
+          },
+          "type": {
+            "type": "string",
+            "required": true,
+            "example": "Tablet",
+            "options": ["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops"]
+          },
+          "disease": {
+            "type": "string",
+            "example": "Fever"
+          },
+          "dosageValue": {
+            "type": "decimal",
+            "example": 500.0
+          },
+          "dosageUnits": {
+            "type": "string",
+            "example": "mg"
+          },
+          "quantityValue": {
+            "type": "int",
+            "example": 10
+          },
+          "quantityUnits": {
+            "type": "string",
+            "example": "tablets"
+          },
+          "mrp": {
+            "type": "decimal",
+            "description": "Maximum Retail Price",
+            "example": 50.00
+          },
+          "discount": {
+            "type": "decimal",
+            "example": 5.00
+          },
+          "finalPrice": {
+            "type": "decimal",
+            "description": "Price after discount",
+            "example": 45.00
+          },
+          "status": {
+            "type": "int",
+            "description": "Active status (0=Inactive, 1=Active)"
+          },
+          "createdBy": {
+            "type": "long"
+          },
+          "createdDate": {
+            "type": "datetime"
+          },
+          "updatedDate": {
+            "type": "datetime"
+          },
+          "updatedBy": {
+            "type": "long"
+          }
+        }
+      },
+      "User": {
+        "description": "System user account",
+        "properties": {
+          "id": {
+            "type": "int",
+            "description": "Database identifier (0 for new users)"
+          },
+          "firstname": {
+            "type": "string",
+            "required": true,
+            "example": "John"
+          },
+          "lastname": {
+            "type": "string",
+            "required": true,
+            "example": "Smith"
+          },
+          "username": {
+            "type": "string",
+            "required": true,
+            "example": "john.smith"
+          },
+          "password": {
+            "type": "string",
+            "required": true,
+            "example": "SecurePassword123!"
+          },
+          "email": {
+            "type": "string",
+            "required": true,
+            "example": "john.smith@pharmacare.com"
+          },
+          "role": {
+            "type": "string",
+            "example": "Admin",
+            "options": ["Admin", "Staff", "Manager"]
+          },
+          "status": {
+            "type": "int",
+            "enum": [0, 1],
+            "description": "0=Inactive, 1=Active"
+          }
+        }
+      },
+      "LoginRequest": {
+        "description": "Admin login credentials",
+        "properties": {
+          "username": {
+            "type": "string",
+            "required": true,
+            "example": "admin_user"
+          },
+          "password": {
+            "type": "string",
+            "required": true,
+            "example": "securePassword123"
+          }
+        }
+      },
+      "OtpRequest": {
+        "description": "Request OTP for mobile number",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "required": true,
+            "example": "9876543210"
+          }
+        }
+      },
+      "VerifyOtpRequest": {
+        "description": "Verify OTP for mobile number",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "required": true,
+            "example": "9876543210"
+          },
+          "otp": {
+            "type": "string",
+            "required": true,
+            "example": "123456"
+          }
+        }
+      }
+    },
+    "enumerations": {
+      "PatientRegistrationStatus": {
+        "Pending": 0,
+        "Approved": 1,
+        "Rejected": -1
+      },
+      "UserStatus": {
+        "Inactive": 0,
+        "Active": 1
+      },
+      "GeneralStatus": {
+        "Inactive": 0,
+        "Active": 1
+      }
+    },
+    "notes": {
+      "authentication": "Currently, endpoints do not require authentication tokens. This should be implemented in production.",
+      "dateTimeFormat": "All datetime fields use ISO 8601 format (YYYY-MM-DDTHH:mm:ss)",
+      "mobileNumberFormat": "10-digit Indian mobile number format",
+      "aadharFormat": "12-digit Aadhaar number",
+      "otpGeneration": "OTP is a 6-digit random number (100000-999999)",
+      "errorHandling": "All endpoints return appropriate HTTP status codes with descriptive error messages"
+    }
+  }
+}

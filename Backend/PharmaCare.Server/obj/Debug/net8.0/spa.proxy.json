@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:53205",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "d:\\Code\\Projects\\patient admin backend\\PharmaCare\\PharmaCare.Server\\..\\pharmacare.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

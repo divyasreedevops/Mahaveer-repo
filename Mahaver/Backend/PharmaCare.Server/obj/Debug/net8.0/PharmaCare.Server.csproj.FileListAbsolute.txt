@@ -1,0 +1,112 @@
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.csproj.AssemblyReference.cache
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\spa.proxy.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rpswa.dswa.cache.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.GeneratedMSBuildEditorConfig.editorconfig
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.AssemblyInfoInputs.cache
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.AssemblyInfo.cs
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.csproj.CoreCompileInputs.cache
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.MvcApplicationPartsAssemblyInfo.cs
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.MvcApplicationPartsAssemblyInfo.cache
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\spa.proxy.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\appsettings.Development.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\appsettings.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.staticwebassets.endpoints.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.exe
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.deps.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.runtimeconfig.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.pdb
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Microsoft.AspNetCore.SpaProxy.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Microsoft.OpenApi.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\MySqlConnector.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rjimswa.dswa.cache.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\scopedcss\bundle\PharmaCare.Server.styles.css
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.json.cache
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.development.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCa.DED516AB.Up2Date
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\refint\PharmaCare.Server.dll
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.pdb
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.genruntimeconfig.cache
+D:\sampleproj\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\ref\PharmaCare.Server.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\appsettings.Development.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\spa.proxy.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\appsettings.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.staticwebassets.endpoints.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.exe
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.deps.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.runtimeconfig.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.pdb
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Microsoft.AspNetCore.SpaProxy.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Microsoft.OpenApi.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\MySqlConnector.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.csproj.AssemblyReference.cache
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\spa.proxy.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.AssemblyInfoInputs.cache
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.AssemblyInfo.cs
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.csproj.CoreCompileInputs.cache
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.MvcApplicationPartsAssemblyInfo.cs
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.MvcApplicationPartsAssemblyInfo.cache
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\scopedcss\bundle\PharmaCare.Server.styles.css
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.json.cache
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.development.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCa.DED516AB.Up2Date
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\refint\PharmaCare.Server.dll
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.pdb
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.genruntimeconfig.cache
+D:\Projects\Mahaveer\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\ref\PharmaCare.Server.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\appsettings.Development.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\appsettings.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\spa.proxy.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.staticwebassets.endpoints.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.exe
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.deps.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.runtimeconfig.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\PharmaCare.Server.pdb
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Microsoft.AspNetCore.SpaProxy.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Microsoft.OpenApi.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\MySqlConnector.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.csproj.AssemblyReference.cache
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\spa.proxy.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rpswa.dswa.cache.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.GeneratedMSBuildEditorConfig.editorconfig
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.AssemblyInfoInputs.cache
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.AssemblyInfo.cs
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.csproj.CoreCompileInputs.cache
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.MvcApplicationPartsAssemblyInfo.cs
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.MvcApplicationPartsAssemblyInfo.cache
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rjimswa.dswa.cache.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\scopedcss\bundle\PharmaCare.Server.styles.css
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.json.cache
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.development.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCa.DED516AB.Up2Date
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\refint\PharmaCare.Server.dll
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.pdb
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\PharmaCare.Server.genruntimeconfig.cache
+d:\Code\Projects\patient admin backend\PharmaCare\PharmaCare.Server\obj\Debug\net8.0\ref\PharmaCare.Server.dll

@@ -1,0 +1,3 @@
+D:\sampleproj\PharmaCare\pharmacare.client\obj\Debug\pharmacare.client.esproj.CoreCompileInputs.cache
+D:\Projects\Mahaveer\PharmaCare\pharmacare.client\obj\Debug\pharmacare.client.esproj.CoreCompileInputs.cache
+d:\Code\Projects\patient admin backend\PharmaCare\pharmacare.client\obj\Debug\pharmacare.client.esproj.CoreCompileInputs.cache
