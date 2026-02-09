@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Mahaveer Hospital",
+    "slug": "mahaveer-hospital-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/Mahaveer.png",
+    "splash": {
+      "image": "./assets/Mahaveer.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mahaveer.hospital.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Mahaveer.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.mahaveer.hospital.mobile"
+    }
+  }
+}

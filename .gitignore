@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+*/node_modules
 /.pnp
 .pnp.js
 
@@ -56,3 +57,35 @@ Desktop.ini
 # optional: if using vite
 .vite
 vite.config.ts.timestamp*
+
+# Merged ignores from UI and Backend projects
+# Logs
+logs
+*.log
+lerna-debug.log*
+
+# dist variants
+dist
+dist-ssr
+
+# more editor and environment
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Node / package artifacts
+package-lock.json
+yarn.lock
+
+# Testing
+coverage
+
+# Expo / React Native (UI Mobile)
+.expo/
+.expo-shared/
+android/
+ios/
+web-build/
+
+# Temporarily ignore the React app folder
+/React/
