@@ -33,8 +33,6 @@ export const usePatients = () => {
         registrationStatus: newStatus,
         id: patient.id,
         fullName: patient.fullName,
-        mobileNumber: patient.mobileNumber,
-        email: patient.email,
         aadharNumber: patient.aadharNumber,
       });
       if (result.success) {

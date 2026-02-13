@@ -6,16 +6,16 @@ import type { ApiError } from '@/types';
 const LOCAL_IP = '192.168.1.100';
 
 const getBaseUrl = (): string => {
-  if (__DEV__) {
-    if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:5053';
-    }
-    if (Platform.OS === 'ios') {
-      return 'http://localhost:5053';
-    }
-    return `http://${LOCAL_IP}:5053`;
-  }
-  return 'https://api.pharmacare.com';
+  // if (__DEV__) {
+  //   if (Platform.OS === 'android') {
+  //     return 'http://16.112.72.213:5000';
+  //   }
+  //   if (Platform.OS === 'ios') {
+  //     return 'http://16.112.72.213:5000';
+  //   }
+  //   return `http://16.112.72.213:5000`;
+  // }
+  return 'http://16.112.72.213:5000';
 };
 
 const apiClient = axios.create({
@@ -30,21 +30,102 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add timestamp for response time calculation
+    (config as any).metadata = { startTime: Date.now() };
+    
     if (__DEV__) {
-      console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+      console.log('─────────────────────────────────────────');
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(`[API Request] Platform: ${Platform.OS}`);
+      console.log(`[API Request] Base URL: ${config.baseURL}`);
+      console.log(`[API Request] Full URL: ${config.baseURL}${config.url}`);
+      
+      if (config.params) {
+        console.log('[API Request] Query Params:', JSON.stringify(config.params, null, 2));
+      }
+      
+      if (config.data) {
+        // Mask sensitive data in logs
+        const logData = { ...config.data };
+        if (logData.password) logData.password = '***';
+        if (logData.otp) logData.otp = '***';
+        console.log('[API Request] Body:', JSON.stringify(logData, null, 2));
+      }
+      
+      if (config.headers.Authorization) {
+        console.log('[API Request] Authorization: Bearer ***');
+      }
     }
+    
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    if (__DEV__) {
+      console.error('[API Request Error]', error);
+    }
+    return Promise.reject(error);
+  },
 );
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (__DEV__) {
+      const duration = (response.config as any).metadata?.startTime 
+        ? Date.now() - (response.config as any).metadata.startTime 
+        : 0;
+      
+      console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`);
+      console.log(`[API Response] Status: ${response.status} ${response.statusText}`);
+      console.log(`[API Response] Duration: ${duration}ms`);
+      
+      // Log response data (truncate if too large)
+      const responseData = JSON.stringify(response.data);
+      if (responseData.length > 500) {
+        console.log(`[API Response] Data (truncated): ${responseData.substring(0, 500)}...`);
+        console.log(`[API Response] Full data length: ${responseData.length} characters`);
+      } else {
+        console.log('[API Response] Data:', response.data);
+      }
+      console.log('─────────────────────────────────────────');
+    }
+    return response;
+  },
   async (error) => {
     const apiError: ApiError = {
       message: 'An unexpected error occurred',
       status: error.response?.status,
     };
+
+    if (__DEV__) {
+      const duration = (error.config as any)?.metadata?.startTime 
+        ? Date.now() - (error.config as any).metadata.startTime 
+        : 0;
+      
+      console.error('─────────────────────────────────────────');
+      console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url}`);
+      console.error(`[API Error] Platform: ${Platform.OS}`);
+      console.error(`[API Error] Duration: ${duration}ms`);
+      console.error(`[API Error] Error Code: ${error.code}`);
+      
+      if (error.response) {
+        console.error(`[API Error] Status: ${error.response.status} ${error.response.statusText}`);
+        console.error('[API Error] Response Data:', error.response.data);
+      } else if (error.code === 'ECONNABORTED') {
+        console.error('[API Error] Request timed out');
+        console.error('[API Error] Check your network connection and backend availability');
+      } else if (error.request) {
+        console.error('[API Error] No response received from server');
+        console.error('[API Error] Network error - ensure backend is running at', getBaseUrl());
+        if (Platform.OS === 'ios') {
+          console.error('[API Error] iOS Note: If using HTTP, ensure App Transport Security is configured');
+          console.error('[API Error] iOS Note: Check that your device can reach the backend server');
+        }
+      } else {
+        console.error('[API Error] Error:', error.message);
+      }
+      console.error('─────────────────────────────────────────');
+    }
 
     if (error.response) {
       const serverMessage = error.response.data?.message;
@@ -75,9 +156,6 @@ apiClient.interceptors.response.use(
       apiError.message = 'Request timed out.';
     } else if (!error.response) {
       apiError.message = 'Network error. Please check your connection.';
-      if (__DEV__) {
-        console.warn('[API] Network error - ensure backend is running at', getBaseUrl());
-      }
     }
 
     return Promise.reject(apiError);

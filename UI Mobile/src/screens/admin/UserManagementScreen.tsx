@@ -101,7 +101,6 @@ export const UserManagementScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView style={[s.flex, { backgroundColor: c.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <AppDialog {...dialogProps} />
       <Header
         title="User Management"
         subtitle="Create new users"
@@ -213,6 +212,7 @@ export const UserManagementScreen: React.FC = () => {
           </CardContent>
         </Card>
       </ScrollView>
+      <AppDialog {...dialogProps} />
     </KeyboardAvoidingView>
   );
 };

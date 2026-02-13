@@ -74,9 +74,14 @@ export function ToastProvider({ children }: ToastProviderProps) {
   }, []);
 
   const loading = useCallback((message: string, options?: ToastOptions) => {
-    return sonnerToast.loading(message, {
+    const toastId = sonnerToast.loading(message, {
       description: options?.description,
+      action: {
+        label: '✕',
+        onClick: () => sonnerToast.dismiss(toastId),
+      },
     });
+    return toastId;
   }, []);
 
   const dismiss = useCallback((toastId?: string | number) => {

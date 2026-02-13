@@ -74,8 +74,6 @@ export const AdminLoginScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView style={[styles.flex, { backgroundColor: c.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={c.background} />
-      <LoadingOverlay visible={loading} message="Signing in..." />
-      <AppDialog {...dialogProps} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Header - matching landing page */}
@@ -151,6 +149,8 @@ export const AdminLoginScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Signing in..." />
+      <AppDialog {...dialogProps} />
     </KeyboardAvoidingView>
   );
 };

@@ -18,7 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (credentials: LoginRequest) => Promise<{ success: boolean; message?: string }>;
-  loginPatient: (mobileNumber: string, email?: string) => Promise<{ success: boolean; message?: string }>;
+  loginPatient: (mobileNumber: string) => Promise<{ success: boolean; message?: string }>;
   verifyOtp: (mobileNumber: string, otp: string) => Promise<{ success: boolean; patientId?: string; isFirstLogin?: boolean; message?: string }>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -134,15 +134,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  const loginPatient = useCallback(async (mobileNumber: string, email?: string) => {
+  const loginPatient = useCallback(async (mobileNumber: string) => {
     setError(null);
     try {
-      const result = await authService.loginPatient(mobileNumber, email);
+      if (__DEV__) console.log('[AuthContext] loginPatient - Calling authService with mobile:', mobileNumber);
+      const result = await authService.loginPatient(mobileNumber);
+      if (__DEV__) console.log('[AuthContext] loginPatient - authService result:', JSON.stringify(result));
+      
       if (result.success) {
-        return { success: true, message: result.data?.otp ? `OTP: ${result.data.otp}` : undefined };
+        const message = result.data?.otp ? `OTP: ${result.data.otp}` : undefined;
+        if (__DEV__) console.log('[AuthContext] loginPatient - Success, generated message:', message);
+        if (__DEV__) console.log('[AuthContext] loginPatient - result.data:', JSON.stringify(result.data));
+        return { success: true, message };
       }
+      if (__DEV__) console.log('[AuthContext] loginPatient - Failed with message:', result.message);
       return { success: false, message: result.message };
     } catch (err: any) {
+      if (__DEV__) console.error('[AuthContext] loginPatient - Exception:', err);
       return { success: false, message: err.message };
     }
   }, []);

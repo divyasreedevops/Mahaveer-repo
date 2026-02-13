@@ -56,29 +56,28 @@ export const authService = {
   },
 
   /**
-   * Patient login/register - Uses Patient/Register endpoint for both login and registration
+   * Patient login/register - Uses Patient/Register endpoint
+   * Backend returns: {message, mobileNumber, otp} (otp only in dev)
    */
   async loginPatient(mobileNumber: string): Promise<ApiResponse<any>> {
     try {
       const response = await apiClient.post('/Patient/Register', { mobileNumber });
-      
-      // Backend returns patient data and/or token
       const data = response.data;
       
-      // Store token if provided
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
-      }
-      
+      // Backend returns {message, mobileNumber, otp} — no token at this stage
+      // Auth happens after OTP verification
       return {
         success: true,
         data: data,
-        message: data.message || 'Success',
+        message: data.message || 'OTP sent successfully',
       };
     } catch (error: any) {
+      if (error.response?.status === 400) {
+        return { success: false, error: 'Mobile number is required' };
+      }
       return {
         success: false,
-        error: error.message || 'Failed to login',
+        error: error.message || 'Failed to send OTP',
       };
     }
   },
@@ -88,7 +87,7 @@ export const authService = {
    */
   async logout(): Promise<ApiResponse<void>> {
     try {
-      const response = await apiClient.post('/Login/logout', {});
+      const response = await apiClient.post('/Login/logout');
       localStorage.removeItem('auth_token');
       // Backend returns: {message: "Logged out successfully"}
       return {

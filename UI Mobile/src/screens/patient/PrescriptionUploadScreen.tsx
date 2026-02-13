@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { Header, Button, Card, CardContent, LoadingOverlay, AppDialog } from '@/components';
 import { useDialog } from '@/hooks';
 import { spacing, fontSize, fontWeight, borderRadius, shadows } from '@/theme';
@@ -25,6 +26,7 @@ const MOCK_HOSPITALS = ['City General Hospital', 'Apollo Clinic', 'Max Healthcar
 export const PrescriptionUploadScreen: React.FC<Props> = ({ navigation, route }) => {
   const { patientId, mobileNumber } = route.params;
   const { colors: c } = useTheme();
+  const { user } = useAuth();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
@@ -33,6 +35,27 @@ export const PrescriptionUploadScreen: React.FC<Props> = ({ navigation, route })
     hospitalName: string;
   } | null>(null);
   const { showDialog, hideDialog, dialogProps } = useDialog();
+
+  // Guard: redirect to PatientDetails if profile not complete
+  useEffect(() => {
+    if (!user?.isProfileComplete) {
+      showDialog({
+        title: 'Complete Your Profile',
+        message: 'Please complete your profile and KYC details before uploading prescriptions.',
+        icon: 'alert-circle',
+        iconColor: c.warning,
+        iconBgColor: c.warningSoft,
+        actions: [{
+          text: 'Complete Now',
+          variant: 'primary',
+          onPress: () => {
+            hideDialog();
+            navigation.replace('PatientDetails', { mobileNumber, patientId });
+          },
+        }],
+      });
+    }
+  }, [user?.isProfileComplete]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -116,8 +139,6 @@ export const PrescriptionUploadScreen: React.FC<Props> = ({ navigation, route })
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={c.surface} />
-      <LoadingOverlay visible={loading} message="Processing prescription..." />
-      <AppDialog {...dialogProps} />
       <Header
         title="Upload Prescription"
         showBack
@@ -242,6 +263,8 @@ export const PrescriptionUploadScreen: React.FC<Props> = ({ navigation, route })
           </CardContent>
         </Card>
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Processing prescription..." />
+      <AppDialog {...dialogProps} />
     </View>
   );
 };

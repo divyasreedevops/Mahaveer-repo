@@ -14,10 +14,12 @@ export const useDialog = () => {
   const [config, setConfig] = useState<DialogConfig | null>(null);
 
   const showDialog = useCallback((options: DialogConfig) => {
+    if (__DEV__) console.log('[useDialog] showDialog called with:', JSON.stringify(options));
     setConfig(options);
   }, []);
 
   const hideDialog = useCallback(() => {
+    if (__DEV__) console.log('[useDialog] hideDialog called');
     setConfig(null);
   }, []);
 

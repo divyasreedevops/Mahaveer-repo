@@ -20,6 +20,10 @@ export interface InventoryItem {
   createdDate: string;
   updatedDate: string;
   updatedBy: number | null;
+  // UI-only fields (not in API schema, ignored by backend)
+  genericName?: string;
+  packingInfo?: string;
+  substitutes?: string[];
 }
 
 export interface LoginRequest {
@@ -29,7 +33,6 @@ export interface LoginRequest {
 
 export interface OtpRequest {
   mobileNumber: string | null;
-  email?: string;
 }
 
 export interface VerifyOtpRequest {
@@ -53,11 +56,16 @@ export interface PatientDetails {
   dob: string | null;
   registrationDate: string;
   registrationStatus: string | null;
+  kycStatus: string | null;
   status: number;
   createdBy: number | null;
   createdDate: string;
   updatedDate: string;
   updatedBy: number | null;
+  firstLogin: number;
+  kycDocumentUrl: string | null;
+  incomeLevel: string | null;
+  discountPercentage: number | null;
 }
 
 export interface User {
@@ -111,4 +119,51 @@ export enum UserRole {
   ADMIN = 'admin',
   PATIENT = 'patient',
   STAFF = 'staff'
+}
+
+/**
+ * Payment types
+ */
+export interface CreateOrderRequest {
+  amount: number;
+  patientId: string;
+}
+
+export interface PaymentOrder {
+  orderId: string;
+  amount: number;
+  currency: string;
+  receipt: string;
+}
+
+export interface VerifyPaymentRequest {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+}
+
+export interface PaymentVerificationResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Income Level from Common API
+ */
+export interface IncomeLevel {
+  id: number;
+  incomeLevelName: string;
+  discountPercentage: number;
+  description: string;
+  status: number;
+}
+
+/**
+ * Approve KYC request
+ */
+export interface ApproveKycRequest extends Partial<PatientDetails> {
+  id: number;
+  incomeLevel: string;
+  discountPercentage?: number;
+  updatedBy?: number;
 }

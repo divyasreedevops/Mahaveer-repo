@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   Platform,
   StatusBar,
   Switch,
+  TouchableOpacity,
+  Modal,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -24,8 +27,8 @@ type Props = DrawerScreenProps<PatientDrawerParamList, 'Profile'>;
 
 export const PatientProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const { mobileNumber, patientId } = route.params || {};
-  const { colors: c } = useTheme();
-  const { user, enableBiometrics, disableBiometrics, isBiometricEnabled, biometricAvailable } = useAuth();
+  const { colors: c, colorScheme, toggleTheme } = useTheme();
+  const { user, enableBiometrics, disableBiometrics, isBiometricEnabled, biometricAvailable, logout } = useAuth();
   const { showDialog, hideDialog, dialogProps } = useDialog();
 
   const [patient, setPatient] = useState<PatientDetails | null>(null);
@@ -39,11 +42,53 @@ export const PatientProfileScreen: React.FC<Props> = ({ navigation, route }) => 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(300)).current;
 
   useEffect(() => {
     fetchPatient();
     checkBiometricStatus();
   }, []);
+
+  const openMenu = () => {
+    setMenuVisible(true);
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 11,
+    }).start();
+  };
+
+  const closeMenu = () => {
+    Animated.timing(slideAnim, {
+      toValue: 300,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setMenuVisible(false));
+  };
+
+  const handleLogout = () => {
+    closeMenu();
+    showDialog({
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      icon: 'log-out-outline',
+      iconColor: c.danger,
+      iconBgColor: c.dangerSoft,
+      actions: [
+        { text: 'Cancel', variant: 'default', onPress: hideDialog },
+        {
+          text: 'Logout',
+          variant: 'destructive',
+          onPress: async () => {
+            hideDialog();
+            await logout();
+          },
+        },
+      ],
+    });
+  };
 
   const checkBiometricStatus = async () => {
     const enabled = await isBiometricEnabled();
@@ -198,16 +243,23 @@ export const PatientProfileScreen: React.FC<Props> = ({ navigation, route }) => 
   return (
     <KeyboardAvoidingView style={[styles.flex, { backgroundColor: c.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle="dark-content" backgroundColor={c.surface} />
-      <LoadingOverlay visible={loading || saving} message={loading ? 'Loading profile...' : 'Saving...'} />
-      <AppDialog {...dialogProps} />
 
-      <Header
-        title="My Profile"
-        subtitle="Edit your details"
-        showBack
-        onBackPress={() => navigation.goBack()}
-        username={patient?.fullName || mobileNumber || user?.username}
-      />
+      <View style={[styles.header, { backgroundColor: c.surface, borderBottomColor: c.border }]}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.headerTitle, { color: c.text }]}>My Profile</Text>
+            <Text style={[styles.headerSubtitle, { color: c.textSecondary }]}>Edit your details</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={toggleTheme} activeOpacity={0.7} style={styles.themeButton}>
+              <Ionicons name={colorScheme === 'dark' ? 'sunny' : 'moon'} size={24} color={c.text} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={openMenu} activeOpacity={0.7} style={styles.menuButton}>
+              <Ionicons name="menu" size={28} color={c.text} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Avatar Card */}
@@ -320,6 +372,101 @@ export const PatientProfileScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
         )}
       </ScrollView>
+      <LoadingOverlay visible={loading || saving} message={loading ? 'Loading profile...' : 'Saving...'} />
+      <AppDialog {...dialogProps} />
+
+      {/* Side Menu Modal */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeMenu}
+      >
+        <TouchableOpacity 
+          activeOpacity={1} 
+          style={styles.menuOverlay} 
+          onPress={closeMenu}
+        >
+          <Animated.View
+            style={[
+              styles.menuPanel,
+              { 
+                backgroundColor: c.surface,
+                transform: [{ translateX: slideAnim }],
+              },
+            ]}
+          >
+            {/* Patient Details Section */}
+            <View style={[styles.menuHeader, { borderBottomColor: c.border }]}>
+              {patient && (
+                <View style={styles.menuPatientInfo}>
+                  <Avatar name={patient.fullName || mobileNumber || ''} size={56} />
+                  <Text style={[styles.menuPatientName, { color: c.text }]}>{patient.fullName || 'Patient'}</Text>
+                  <Text style={[styles.menuPatientId, { color: c.textSecondary }]}>ID: {patient.patientId}</Text>
+                  <View style={styles.menuMetaRow}>
+                    <Ionicons name="call" size={12} color={c.textTertiary} />
+                    <Text style={[styles.menuMetaText, { color: c.textTertiary }]}>{mobileNumber || patient.mobileNumber}</Text>
+                  </View>
+                  {patient.registrationStatus && (
+                    <View style={[styles.menuStatusBadge, { 
+                      backgroundColor: patient.registrationStatus === 'Approved' ? c.successSoft : c.warningSoft 
+                    }]}>
+                      <Ionicons 
+                        name={patient.registrationStatus === 'Approved' ? 'checkmark-circle' : 'time'} 
+                        size={12} 
+                        color={patient.registrationStatus === 'Approved' ? c.success : c.warning} 
+                      />
+                      <Text style={[styles.menuStatusText, { 
+                        color: patient.registrationStatus === 'Approved' ? c.success : c.warning 
+                      }]}>{patient.registrationStatus}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Menu Actions */}
+            <View style={styles.menuActions}>
+              {/* Theme Toggle */}
+              <View style={styles.menuActionRow}>
+                <View style={[styles.menuActionIcon, { backgroundColor: c.primarySoft }]}>
+                  <Ionicons name={colorScheme === 'dark' ? 'moon' : 'sunny'} size={20} color={c.primary} />
+                </View>
+                <View style={styles.menuActionInfo}>
+                  <Text style={[styles.menuActionLabel, { color: c.text }]}>Dark Mode</Text>
+                  <Text style={[styles.menuActionDesc, { color: c.textTertiary }]}>
+                    {colorScheme === 'dark' ? 'On' : 'Off'}
+                  </Text>
+                </View>
+                <Switch
+                  value={colorScheme === 'dark'}
+                  onValueChange={toggleTheme}
+                  trackColor={{ false: c.border, true: c.primarySoft }}
+                  thumbColor={colorScheme === 'dark' ? c.primary : c.textTertiary}
+                />
+              </View>
+
+              {/* Logout */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleLogout}
+                style={[styles.menuActionRow, styles.logoutRow, { backgroundColor: c.dangerSoft }]}
+              >
+                <View style={[styles.menuActionIcon, { backgroundColor: c.danger }]}>
+                  <Ionicons name="log-out-outline" size={20} color="#FFF" />
+                </View>
+                <View style={styles.menuActionInfo}>
+                  <Text style={[styles.menuActionLabel, { color: c.danger }]}>Logout</Text>
+                  <Text style={[styles.menuActionDesc, { color: c.danger, opacity: 0.7 }]}>
+                    Sign out of your account
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={c.danger} />
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -351,6 +498,130 @@ const infoStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  headerTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+  },
+  headerSubtitle: {
+    fontSize: fontSize.sm,
+    marginTop: 2,
+  },
+  menuButton: {
+    padding: spacing.sm,
+  },
+  themeButton: {
+    padding: spacing.sm,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  menuPanel: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 300,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+  },
+  menuHeader: {
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+  },
+  menuPatientInfo: {
+    alignItems: 'center',
+  },
+  menuPatientName: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+    marginTop: spacing.md,
+  },
+  menuPatientId: {
+    fontSize: fontSize.xs,
+    marginTop: spacing.xs,
+  },
+  menuMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  menuMetaText: {
+    fontSize: fontSize.xs,
+  },
+  menuStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.sm,
+  },
+  menuStatusText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+  },
+  menuActions: {
+    flex: 1,
+    paddingTop: spacing.md,
+  },
+  menuActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.md,
+  },
+  menuActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuActionInfo: {
+    flex: 1,
+  },
+  menuActionLabel: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+  },
+  menuActionDesc: {
+    fontSize: fontSize.xs,
+    marginTop: 1,
+  },
+  logoutRow: {
+    marginHorizontal: spacing.lg,
+    marginTop: 'auto',
+    marginBottom: spacing.xl,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.lg,
+  },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing['4xl'] },
   avatarCard: { marginBottom: spacing.lg },
   avatarContent: {

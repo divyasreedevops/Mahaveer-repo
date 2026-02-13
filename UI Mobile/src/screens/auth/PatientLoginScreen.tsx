@@ -61,9 +61,14 @@ export const PatientLoginScreen: React.FC<Props> = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const result = await loginPatient(mobile.replace(/\D/g, ''), email || undefined);
+      if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Starting OTP send process');
+      const result = await loginPatient(mobile.replace(/\D/g, ''));
+      if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Result:', JSON.stringify(result));
+      
       if (result.success) {
+        if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Success, message:', result.message);
         if (result.message) {
+          if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Showing dialog with message');
           showDialog({
             title: 'OTP Sent',
             message: result.message,
@@ -71,14 +76,17 @@ export const PatientLoginScreen: React.FC<Props> = ({ navigation }) => {
             iconColor: c.success,
             iconBgColor: c.successSoft,
             actions: [{ text: 'Continue', variant: 'primary', onPress: () => {
+              if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Dialog Continue pressed, navigating to OTP screen');
               hideDialog();
               navigation.navigate('PatientOtp', { mobileNumber: mobile.replace(/\D/g, ''), email: email || undefined });
             }}],
           });
         } else {
+          if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - No message, navigating directly to OTP screen');
           navigation.navigate('PatientOtp', { mobileNumber: mobile.replace(/\D/g, ''), email: email || undefined });
         }
       } else {
+        if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Failed, showing error dialog');
         showDialog({
           title: 'Error',
           message: result.message || 'Failed to send OTP',
@@ -88,7 +96,8 @@ export const PatientLoginScreen: React.FC<Props> = ({ navigation }) => {
           actions: [{ text: 'OK', variant: 'primary', onPress: hideDialog }],
         });
       }
-    } catch {
+    } catch (error) {
+      if (__DEV__) console.error('[PatientLoginScreen] handleSendOtp - Exception caught:', error);
       showDialog({
         title: 'Error',
         message: 'Something went wrong',
@@ -98,6 +107,7 @@ export const PatientLoginScreen: React.FC<Props> = ({ navigation }) => {
         actions: [{ text: 'OK', variant: 'primary', onPress: hideDialog }],
       });
     } finally {
+      if (__DEV__) console.log('[PatientLoginScreen] handleSendOtp - Process complete, setting loading to false');
       setLoading(false);
     }
   };
@@ -105,8 +115,6 @@ export const PatientLoginScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView style={[s.flex, { backgroundColor: c.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={c.background} />
-      <LoadingOverlay visible={loading} message="Sending OTP..." />
-      <AppDialog {...dialogProps} />
 
       <ScrollView contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Header - matching landing page */}
@@ -176,6 +184,8 @@ export const PatientLoginScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </Animated.View>
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Sending OTP..." />
+      <AppDialog {...dialogProps} />
     </KeyboardAvoidingView>
   );
 };

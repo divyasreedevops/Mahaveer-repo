@@ -196,7 +196,6 @@ export const InventoryScreen: React.FC = () => {
 
   return (
     <View style={[s.container, { backgroundColor: c.background }]}>
-      <AppDialog {...dialogProps} />
       <Header
         title="Inventory"
         subtitle={`${filtered.length} medicines`}
@@ -243,6 +242,7 @@ export const InventoryScreen: React.FC = () => {
         icon="add"
         onPress={() => navigation.navigate('AddEditInventory', {})}
       />
+      <AppDialog {...dialogProps} />
     </View>
   );
 };

@@ -127,7 +127,6 @@ export const AddEditInventoryScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView style={[s.flex, { backgroundColor: c.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <AppDialog {...dialogProps} />
       <Header
         title={isEdit ? 'Edit Medicine' : 'Add Medicine'}
         showBack
@@ -252,6 +251,7 @@ export const AddEditInventoryScreen: React.FC = () => {
           </CardContent>
         </Card>
       </ScrollView>
+      <AppDialog {...dialogProps} />
     </KeyboardAvoidingView>
   );
 };

@@ -28,6 +28,9 @@ export function InventoryManagement() {
 
   // Form state
   const [name, setName] = useState('');
+  const [genericName, setGenericName] = useState('');
+  const [packingInfo, setPackingInfo] = useState('');
+  const [substitutes, setSubstitutes] = useState('');
   const [type, setType] = useState<'injection' | 'tablet' | 'capsule' | 'syrup'>('tablet');
   const [dosage, setDosage] = useState('');
   const [dosageUnit, setDosageUnit] = useState('mg');
@@ -51,19 +54,23 @@ export function InventoryManagement() {
 
   const handleAddMedicine = async () => {
     if (name && dosage && quantityValue && disease && price) {
+      setIsUpdating(true);
       try {
         const newItem: InventoryItem = {
           id: 0, // Backend will assign ID
           name,
+          genericName: genericName || name,
           type,
           disease,
           dosageValue: parseFloat(dosage),
           dosageUnits: dosageUnit,
           quantityValue: parseInt(quantityValue),
           quantityUnits: quantityUnit,
+          packingInfo: packingInfo || `Package of ${quantityValue} ${quantityUnit}`,
           mrp: parseFloat(price),
           discount: discount ? parseFloat(discount) : 0,
           finalPrice: parseFloat(price) - (discount ? parseFloat(discount) : 0),
+          substitutes: substitutes ? substitutes.split(',').map(s => s.trim()).filter(s => s) : undefined,
           status: 1,
           createdBy: null,
           createdDate: new Date().toISOString(),
@@ -71,23 +78,32 @@ export function InventoryManagement() {
           updatedBy: null,
         };
         
-        await inventoryService.addInventoryItem(newItem);
-        mutate();
-        toast.success('Medicine added successfully');
-        
-        // Reset form
-        setName('');
-        setType('tablet');
-        setDosage('');
-        setDosageUnit('mg');
-        setQuantityValue('');
-        setQuantityUnit('qty/strip');
-        setDisease('');
-        setPrice('');
-        setDiscount('');
-        setIsAddDialogOpen(false);
+        const result = await inventoryService.addInventoryItem(newItem);
+        if (result.success) {
+          mutate();
+          toast.success(result.message || 'Medicine added successfully');
+          
+          // Reset form
+          setName('');
+          setGenericName('');
+          setPackingInfo('');
+          setSubstitutes('');
+          setType('tablet');
+          setDosage('');
+          setDosageUnit('mg');
+          setQuantityValue('');
+          setQuantityUnit('qty/strip');
+          setDisease('');
+          setPrice('');
+          setDiscount('');
+          setIsAddDialogOpen(false);
+        } else {
+          toast.error(result.error || 'Failed to add medicine');
+        }
       } catch (error) {
         toast.error('Failed to add medicine');
+      } finally {
+        setIsUpdating(false);
       }
     }
   };
@@ -114,6 +130,9 @@ export function InventoryManagement() {
   const handleEditMedicine = (medicine: InventoryItem) => {
     setEditingMedicine(medicine);
     setName(medicine.name || '');
+    setGenericName(medicine.genericName || '');
+    setPackingInfo(medicine.packingInfo || '');
+    setSubstitutes(medicine.substitutes ? medicine.substitutes.join(', ') : '');
     setType((medicine.type as any) || 'tablet');
     setDosage(medicine.dosageValue.toString());
     setDosageUnit(medicine.dosageUnits || 'mg');
@@ -142,13 +161,16 @@ export function InventoryManagement() {
           updatedDate: new Date().toISOString(),
         };
         
-        await inventoryService.updateInventoryItem(updatedItem);
-        mutate();
-        toast.success('Discount updated successfully');
-        
-        setIsDiscountDialogOpen(false);
-        setSelectedMedicine(null);
-        setDiscountPercentage('');
+        const result = await inventoryService.updateInventoryItem(updatedItem);
+        if (result.success) {
+          mutate();
+          toast.success(result.message || 'Discount updated successfully');
+          setIsDiscountDialogOpen(false);
+          setSelectedMedicine(null);
+          setDiscountPercentage('');
+        } else {
+          toast.error(result.error || 'Failed to update discount');
+        }
       } catch (error) {
         toast.error('Failed to update discount');
       } finally {
@@ -164,34 +186,44 @@ export function InventoryManagement() {
         const updatedItem: InventoryItem = {
           ...editingMedicine,
           name,
+          genericName: genericName || name,
           type,
           disease,
           dosageValue: parseFloat(dosage),
           dosageUnits: dosageUnit,
           quantityValue: parseInt(quantityValue),
           quantityUnits: quantityUnit,
+          packingInfo: packingInfo || `Package of ${quantityValue} ${quantityUnit}`,
           mrp: parseFloat(price),
           discount: discount ? parseFloat(discount) : 0,
           finalPrice: parseFloat(price) - (discount ? parseFloat(discount) : 0),
+          substitutes: substitutes ? substitutes.split(',').map(s => s.trim()).filter(s => s) : undefined,
           updatedDate: new Date().toISOString(),
         };
        
-        await inventoryService.updateInventoryItem(updatedItem);
-        mutate();
-        toast.success('Medicine updated successfully');
-        
-        // Reset form
-        setName('');
-        setType('tablet');
-        setDosage('');
-        setDosageUnit('mg');
-        setQuantityValue('');
-        setQuantityUnit('qty/strip');
-        setDisease('');
-        setPrice('');
-        setDiscount('');
-        setIsAddDialogOpen(false);
-        setEditingMedicine(null);
+        const result = await inventoryService.updateInventoryItem(updatedItem);
+        if (result.success) {
+          mutate();
+          toast.success(result.message || 'Medicine updated successfully');
+          
+          // Reset form
+          setName('');
+          setGenericName('');
+          setPackingInfo('');
+          setSubstitutes('');
+          setType('tablet');
+          setDosage('');
+          setDosageUnit('mg');
+          setQuantityValue('');
+          setQuantityUnit('qty/strip');
+          setDisease('');
+          setPrice('');
+          setDiscount('');
+          setIsAddDialogOpen(false);
+          setEditingMedicine(null);
+        } else {
+          toast.error(result.error || 'Failed to update medicine');
+        }
       } catch (error) {
         toast.error('Failed to update medicine');
       } finally {
@@ -203,9 +235,13 @@ export function InventoryManagement() {
   const handleRemoveMedicine = async (id: number) => {
     setIsDeleting(id);
     try {
-      await inventoryService.deleteInventoryItem(id);
-      mutate();
-      toast.success('Medicine removed successfully');
+      const result = await inventoryService.deleteInventoryItem(id);
+      if (result.success) {
+        mutate();
+        toast.success(result.message || 'Medicine removed successfully');
+      } else {
+        toast.error(result.error || 'Failed to remove medicine');
+      }
     } catch (error) {
       toast.error('Failed to remove medicine');
     } finally {
@@ -268,6 +304,9 @@ export function InventoryManagement() {
               if (!open) {
                 // Reset form when dialog closes
                 setName('');
+                setGenericName('');
+                setPackingInfo('');
+                setSubstitutes('');
                 setType('tablet');
                 setDosage('');
                 setDosageUnit('mg');
@@ -414,6 +453,36 @@ export function InventoryManagement() {
                     <p className="text-xs text-muted-foreground">
                       Leave empty for no discount
                     </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="generic-name">Generic Name - Optional</Label>
+                    <Input
+                      id="generic-name"
+                      value={genericName}
+                      onChange={(e) => setGenericName(e.target.value)}
+                      placeholder="e.g., Acetaminophen"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="packing-info">Packing Info - Optional</Label>
+                    <Input
+                      id="packing-info"
+                      value={packingInfo}
+                      onChange={(e) => setPackingInfo(e.target.value)}
+                      placeholder="e.g., 10 tablets in a strip"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="substitutes">Substitutes - Optional</Label>
+                    <Input
+                      id="substitutes"
+                      value={substitutes}
+                      onChange={(e) => setSubstitutes(e.target.value)}
+                      placeholder="e.g., Ibuprofen, Aspirin (comma-separated)"
+                    />
                   </div>
                 </div>
                 <Button 

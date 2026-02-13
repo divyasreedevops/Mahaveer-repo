@@ -1,7 +1,7 @@
 {
   "apiDocumentation": {
     "version": "1.0",
-    "baseUrl": "https://localhost:7212",
+    "baseUrl": "http://16.112.72.213:5000",
     "description": "PharmaCare Backend API Documentation with example payloads, responses, and parameters",
     "endpoints": {
       "authentication": {

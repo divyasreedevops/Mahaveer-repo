@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { borderRadius, spacing, fontSize, fontWeight } from '@/theme';
 
@@ -12,22 +12,21 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ visible, message
   const { colors: c } = useTheme();
   if (!visible) return null;
   return (
-    <Modal transparent animationType="fade" visible={visible}>
-      <View style={[styles.overlay, { backgroundColor: c.overlay }]}>
-        <View style={[styles.card, { backgroundColor: c.surface }]}>
-          <ActivityIndicator size="large" color={c.primary} />
-          {message && <Text style={[styles.text, { color: c.textSecondary }]}>{message}</Text>}
-        </View>
+    <View style={[StyleSheet.absoluteFillObject, styles.overlay, { backgroundColor: c.overlay }]} pointerEvents="auto">
+      <View style={[styles.card, { backgroundColor: c.surface }]}>
+        <ActivityIndicator size="large" color={c.primary} />
+        {message && <Text style={[styles.text, { color: c.textSecondary }]}>{message}</Text>}
       </View>
-    </Modal>
+    </View>
   );
 };
 
 const styles = {
   overlay: {
-    flex: 1,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
+    zIndex: 9998,
+    elevation: 9998,
   },
   card: {
     borderRadius: borderRadius.lg,

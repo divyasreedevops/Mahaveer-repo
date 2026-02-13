@@ -81,7 +81,11 @@ apiClient.interceptors.response.use(
     }
 
     // Handle 401 Unauthorized - token expired or invalid
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip redirect for login endpoints (user is already on login page)
+    const requestUrl = error.config?.url || '';
+    const isLoginRequest = requestUrl.includes('/Login/admin') || requestUrl.includes('/Patient/Register') || requestUrl.includes('/Patient/verify');
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       originalRequest._retry = true;
       
       try {

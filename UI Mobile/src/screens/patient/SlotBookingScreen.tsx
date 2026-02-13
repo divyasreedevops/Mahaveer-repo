@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { Header, Button, Card, CardContent, Badge, LoadingOverlay, AppDialog } from '@/components';
 import { useDialog } from '@/hooks';
 import { spacing, fontSize, fontWeight, borderRadius } from '@/theme';
@@ -19,9 +20,31 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SlotBooking'>;
 export const SlotBookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const { patientId, mobileNumber } = route.params;
   const { colors: c } = useTheme();
+  const { user } = useAuth();
   const [received, setReceived] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showDialog, hideDialog, dialogProps } = useDialog();
+
+  // Guard: redirect to PatientDetails if profile not complete
+  useEffect(() => {
+    if (!user?.isProfileComplete) {
+      showDialog({
+        title: 'Complete Your Profile',
+        message: 'Please complete your profile and KYC details before booking slots.',
+        icon: 'alert-circle',
+        iconColor: c.warning,
+        iconBgColor: c.warningSoft,
+        actions: [{
+          text: 'Complete Now',
+          variant: 'primary',
+          onPress: () => {
+            hideDialog();
+            navigation.replace('PatientDetails', { mobileNumber, patientId });
+          },
+        }],
+      });
+    }
+  }, [user?.isProfileComplete]);
 
   const slotInfo = useMemo(() => {
     const tomorrow = new Date();
@@ -73,8 +96,6 @@ export const SlotBookingScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={c.surface} />
-      <LoadingOverlay visible={loading} message="Updating status..." />
-      <AppDialog {...dialogProps} />
       <Header
         title="Pickup Slot"
         showBack
@@ -197,6 +218,8 @@ export const SlotBookingScreen: React.FC<Props> = ({ navigation, route }) => {
           />
         )}
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Updating status..." />
+      <AppDialog {...dialogProps} />
     </View>
   );
 };

@@ -12,10 +12,10 @@ export interface InventoryItem {
   mrp: number;
   discount: number;
   finalPrice: number;
-  status: string;
-  createdBy: string;
+  status: number;
+  createdBy: number | null;
   createdDate: string;
-  updatedBy: string;
+  updatedBy: number | null;
   updatedDate: string;
 }
 
@@ -29,12 +29,16 @@ export interface PatientDetails {
   dob: string;
   registrationDate: string;
   registrationStatus: string;
-  status: string;
-  createdBy: string;
+  kycStatus: string;
+  status: number;
+  createdBy: number | null;
   createdDate: string;
-  updatedBy: string;
+  updatedBy: number | null;
   updatedDate: string;
-  firstLogin?: boolean;
+  firstLogin: number;
+  kycDocumentUrl: string;
+  incomeLevel: string | null;
+  discountPercentage: number | null;
 }
 
 export interface User {
@@ -45,7 +49,7 @@ export interface User {
   password: string;
   email: string;
   role: string;
-  status: string;
+  status: number;
 }
 
 export interface LoginRequest {
@@ -55,7 +59,6 @@ export interface LoginRequest {
 
 export interface OtpRequest {
   mobileNumber: string;
-  email?: string;
 }
 
 export interface VerifyOtpRequest {
@@ -99,6 +102,53 @@ export enum UserRole {
   STAFF = 'staff',
 }
 
+/**
+ * Payment types
+ */
+export interface CreateOrderRequest {
+  amount: number;
+  patientId: string;
+}
+
+export interface PaymentOrder {
+  orderId: string;
+  amount: number;
+  currency: string;
+  receipt: string;
+}
+
+export interface VerifyPaymentRequest {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+}
+
+export interface PaymentVerificationResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Income Level from Common API
+ */
+export interface IncomeLevel {
+  id: number;
+  incomeLevelName: string;
+  discountPercentage: number;
+  description: string;
+  status: number;
+}
+
+/**
+ * Approve KYC request
+ */
+export interface ApproveKycRequest {
+  id: number;
+  incomeLevel: string;
+  discountPercentage?: number;
+  updatedBy?: number;
+}
+
 // ============ App-specific types ============
 
 export interface Medicine {
@@ -139,6 +189,9 @@ export interface PatientFlowData {
   aadhar: string;
   name: string;
   dob: string;
+  incomeDocumentUrl?: string;
+  incomeLevel?: 'low' | 'medium' | 'high';
+  discountPercentage?: number;
   prescription: string | null;
   prescriptionData?: { doctorName: string; hospitalName: string };
   invoice: Invoice | null;

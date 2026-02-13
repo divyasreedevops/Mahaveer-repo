@@ -85,15 +85,18 @@ export const PatientDashboardScreen: React.FC<Props> = ({ navigation, route }) =
   const isApproved = status === 'approved';
   const isPending = status === 'pending';
   const isRejected = status === 'rejected';
-  const isFirstLogin = !patient?.aadharNumber || patient?.aadharNumber.trim() === '';
+  // Prioritized KYC Workflow (matching Figma):
+  // Check all 4 KYC fields — name, DOB, Aadhaar, income document
+  const isKYCIncomplete = !patient?.fullName || patient.fullName.trim() === ''
+    || !patient?.dob || patient.dob.trim() === ''
+    || !patient?.aadharNumber || patient.aadharNumber.trim() === ''
+    || !patient?.incomeDocumentUrl || patient.incomeDocumentUrl.trim() === '';
 
-  // If first login, show message to complete profile
-  if (isFirstLogin && patient) {
+  // If KYC incomplete, show message to complete profile (regardless of approval status)
+  if (isKYCIncomplete && patient) {
     return (
       <View style={[s.container, { backgroundColor: c.background }]}>
         <StatusBar barStyle="dark-content" backgroundColor={c.surface} />
-        <LoadingOverlay visible={loading} message="Loading profile..." />
-        <AppDialog {...dialogProps} />
 
         <Header
           title="Welcome"
@@ -132,6 +135,8 @@ export const PatientDashboardScreen: React.FC<Props> = ({ navigation, route }) =
           </Card>
           </Animated.View>
         </ScrollView>
+        <LoadingOverlay visible={loading} message="Loading profile..." />
+        <AppDialog {...dialogProps} />
       </View>
     );
   }
@@ -139,8 +144,6 @@ export const PatientDashboardScreen: React.FC<Props> = ({ navigation, route }) =
   return (
     <View style={[s.container, { backgroundColor: c.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={c.surface} />
-      <LoadingOverlay visible={loading} message="Loading profile..." />
-      <AppDialog {...dialogProps} />
 
       <Header
         title="My Dashboard"
@@ -265,6 +268,8 @@ export const PatientDashboardScreen: React.FC<Props> = ({ navigation, route }) =
         )}
         </Animated.View>
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Loading profile..." />
+      <AppDialog {...dialogProps} />
     </View>
   );
 };

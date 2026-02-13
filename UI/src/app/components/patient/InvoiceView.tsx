@@ -33,9 +33,27 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
     tax: number;
     discount: number;
     grandTotal: number;
+    discountPercentage: number;
   } | null>(null);
+  const [discountPercentage, setDiscountPercentage] = useState<number>(90);
+
+  // Load discount percentage from stored patient data
+  useEffect(() => {
+    const storedData = localStorage.getItem('patient_data');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData.discountPercentage != null) {
+          setDiscountPercentage(parsedData.discountPercentage);
+        }
+      } catch (e) {
+        console.error('Failed to parse patient data', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
+    // Only generate invoice once when component mounts or discount changes
     // Generate mock invoice from prescription
     const mockItems: InvoiceItem[] = [
       { id: '1', medicine: 'Paracetamol 500mg', quantity: 10, unitPrice: 5, total: 50 },
@@ -46,7 +64,7 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
 
     const subtotal = mockItems.reduce((acc, item) => acc + item.total, 0);
     const tax = subtotal * 0.05; // 5% tax
-    const discount = (subtotal + tax) * 0.90; // 90% subsidy
+    const discount = (subtotal + tax) * (discountPercentage / 100); // Use patient's subsidy percentage
     const grandTotal = (subtotal + tax) - discount;
 
     const newInvoice = {
@@ -57,11 +75,13 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
       tax,
       discount,
       grandTotal,
+      discountPercentage,
     };
 
     setInvoice(newInvoice);
     updateData({ invoice: newInvoice });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discountPercentage]);
 
   const handleProceedToPayment = () => {
     toast.success('Proceeding to payment...');
@@ -156,11 +176,11 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
                 <span>₹{invoice.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Tax (5%):</span>
+                <span>Taxes (5%):</span>
                 <span>₹{invoice.tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm text-green-600">
-                <span>Subsidy (90% discount):</span>
+                <span>Discount ({invoice.discountPercentage}%):</span>
                 <span>- ₹{invoice.discount.toFixed(2)}</span>
               </div>
               <Separator />
@@ -172,7 +192,7 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-green-900">
-                <strong>Great News!</strong> You're saving ₹{invoice.discount.toFixed(2)} with our 90% subsidy program.
+                <strong>Great News!</strong> You're saving ₹{invoice.discount.toFixed(2)} with {invoice.discountPercentage}% discount.
               </p>
             </div>
 

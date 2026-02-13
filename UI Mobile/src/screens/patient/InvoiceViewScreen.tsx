@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { Header, Button, Card, CardContent, Badge, LoadingOverlay, AppDialog } from '@/components';
 import { useDialog } from '@/hooks';
 import { spacing, fontSize, fontWeight, borderRadius } from '@/theme';
@@ -32,16 +33,43 @@ const MOCK_INVOICE_ITEMS: InvoiceItem[] = [
 ];
 
 const TAX_RATE = 0.05;
-const SUBSIDY_RATE = 0.90;
+// Default subsidy rate; overridden by patient's discountPercentage when available
+const DEFAULT_SUBSIDY_PERCENT = 90;
 
 export const InvoiceViewScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { patientId, mobileNumber, prescriptionData } = route.params;
+  const { patientId, mobileNumber, prescriptionData, discountPercentage: routeDiscount } = route.params;
   const { colors: c } = useTheme();
+  const { user } = useAuth();
   const [paymentDone, setPaymentDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showDialog, hideDialog, dialogProps } = useDialog();
 
+  // Guard: redirect to PatientDetails if profile not complete
+  useEffect(() => {
+    if (!user?.isProfileComplete) {
+      showDialog({
+        title: 'Complete Your Profile',
+        message: 'Please complete your profile and KYC details before viewing invoices.',
+        icon: 'alert-circle',
+        iconColor: c.warning,
+        iconBgColor: c.warningSoft,
+        actions: [{
+          text: 'Complete Now',
+          variant: 'primary',
+          onPress: () => {
+            hideDialog();
+            navigation.replace('PatientDetails', { mobileNumber, patientId });
+          },
+        }],
+      });
+    }
+  }, [user?.isProfileComplete]);
+
   const invoiceNumber = useMemo(() => `INV-${Date.now().toString(36).toUpperCase()}`, []);
+
+  // Use patient-specific discount when passed, otherwise fallback to default
+  const subsidyPercent = routeDiscount ?? DEFAULT_SUBSIDY_PERCENT;
+  const subsidyRate = subsidyPercent / 100;
 
   const calculations = useMemo(() => {
     const subtotal = MOCK_INVOICE_ITEMS.reduce((sum, item) => {
@@ -49,10 +77,10 @@ export const InvoiceViewScreen: React.FC<Props> = ({ navigation, route }) => {
       return sum + itemTotal * item.quantity;
     }, 0);
     const taxes = subtotal * TAX_RATE;
-    const subsidy = subtotal * SUBSIDY_RATE;
+    const subsidy = subtotal * subsidyRate;
     const grandTotal = subtotal + taxes - subsidy;
     return { subtotal, taxes, subsidy, grandTotal };
-  }, []);
+  }, [subsidyRate]);
 
   const handlePayment = async () => {
     showDialog({
@@ -93,8 +121,6 @@ export const InvoiceViewScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={c.surface} />
-      <LoadingOverlay visible={loading} message="Processing payment..." />
-      <AppDialog {...dialogProps} />
       <Header
         title="Invoice"
         showBack
@@ -181,7 +207,7 @@ export const InvoiceViewScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={[styles.totalValue, { color: c.text }]}>+₹{calculations.taxes.toFixed(2)}</Text>
             </View>
             <View style={styles.totalRow}>
-              <Text style={[styles.totalLabel, { color: c.success }]}>Govt Subsidy (90%)</Text>
+              <Text style={[styles.totalLabel, { color: c.success }]}>Govt Subsidy ({subsidyPercent}%)</Text>
               <Text style={[styles.totalValue, { color: c.success }]}>-₹{calculations.subsidy.toFixed(2)}</Text>
             </View>
             <View style={[styles.grandTotalRow, { borderTopColor: c.border }]}>
@@ -192,7 +218,7 @@ export const InvoiceViewScreen: React.FC<Props> = ({ navigation, route }) => {
             <View style={[styles.subsidyBanner, { backgroundColor: c.successSoft }]}>
               <Ionicons name="gift-outline" size={20} color={c.success} />
               <Text style={[styles.subsidyText, { color: c.successDark }]}>
-                You save ₹{calculations.subsidy.toFixed(2)} with 90% government subsidy!
+                You save ₹{calculations.subsidy.toFixed(2)} with {subsidyPercent}% government subsidy!
               </Text>
             </View>
 
@@ -225,6 +251,8 @@ export const InvoiceViewScreen: React.FC<Props> = ({ navigation, route }) => {
           </CardContent>
         </Card>
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Processing payment..." />
+      <AppDialog {...dialogProps} />
     </View>
   );
 };

@@ -11,13 +11,15 @@ export const otpService = {
   async sendOtp(data: OtpRequest): Promise<ApiResponse<any>> {
     try {
       const response = await apiClient.post('/Otp/send', data);
-      // Backend returns: {message: "OTP sent successfully", ...otherData}
+      // Backend returns: {message: "OTP sent successfully", mobileNumber: "..."}
       return {
         success: true,
         data: response.data,
         message: response.data.message || 'OTP sent successfully',
       };
     } catch (error: any) {
+      const status = error.status || error.response?.status;
+      if (status === 400) return { success: false, error: error.message || 'Mobile number is required' };
       return {
         success: false,
         error: error.message || 'Failed to send OTP',
@@ -39,8 +41,11 @@ export const otpService = {
         success: isValid,
         data: { isValid },
         message: response.data.message || (isValid ? 'OTP verified successfully' : 'Invalid OTP'),
+        ...(isValid ? {} : { error: response.data.message || 'Invalid OTP' }),
       };
     } catch (error: any) {
+      const status = error.status || error.response?.status;
+      if (status === 400) return { success: false, data: { isValid: false }, error: error.message || 'Mobile number and OTP are required' };
       return {
         success: false,
         data: { isValid: false },

@@ -50,7 +50,6 @@ export const DrawerContent: React.FC<any> = (props) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.surface }]}>
-      <AppDialog {...dialogProps} />
       {/* Header Section */}
       <View style={styles.header}>
         <View style={[styles.headerGradient, { backgroundColor: c.surface, borderBottomColor: c.border }]}>
@@ -123,6 +122,7 @@ export const DrawerContent: React.FC<any> = (props) => {
         </TouchableOpacity>
         <Text style={[styles.version, { color: c.textTertiary }]}>Mahaveer Hospital v1.0.0</Text>
       </View>
+      <AppDialog {...dialogProps} useModal />
     </View>
   );
 };

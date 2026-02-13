@@ -7,7 +7,7 @@ export type RootStackParamList = {
   AdminMain: undefined;
   PatientMain: { mobileNumber: string; patientId: string };
   PrescriptionUpload: { patientId: string; mobileNumber: string };
-  InvoiceView: { patientId: string; mobileNumber: string; prescriptionData?: { doctorName: string; hospitalName: string } };
+  InvoiceView: { patientId: string; mobileNumber: string; prescriptionData?: { doctorName: string; hospitalName: string }; discountPercentage?: number };
   SlotBooking: { patientId: string; mobileNumber: string };
   PatientProfile: { mobileNumber: string; patientId: string };
 };

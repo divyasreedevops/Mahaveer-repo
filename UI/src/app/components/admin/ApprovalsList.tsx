@@ -1,37 +1,92 @@
-import { usePatients, useUpdatePatientStatus } from '@/hooks';
+import { useState } from 'react';
+import { usePatients, useUpdatePatientStatus, useApproveKyc, useIncomeLevels } from '@/hooks';
 import { useToast } from '@/lib';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { Badge } from '@/app/components/ui/badge';
-import { CheckCircle, XCircle, Clock, User, Phone, Mail, CreditCard, Calendar } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Label } from '@/app/components/ui/label';
+import { Input } from '@/app/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { CheckCircle, XCircle, Clock, User, Phone, Mail, CreditCard, Calendar, FileText, Loader2 } from 'lucide-react';
 import { TableSkeleton, CardListSkeleton } from '@/app/components/ui/loaders';
 import { RegistrationStatus } from '@/types';
+import type { PatientDetails } from '@/types';
 
 export function ApprovalsList() {
   const { patients: pendingApprovals, isLoading, mutate } = usePatients(RegistrationStatus.PENDING);
   const { updateStatus } = useUpdatePatientStatus();
+  const { approveKyc } = useApproveKyc();
+  const { incomeLevels } = useIncomeLevels();
   const toast = useToast();
 
-  const handleApprove = async (patientId: string | null) => {
-    if (!patientId) return;
+  const [selectedPatient, setSelectedPatient] = useState<PatientDetails | null>(null);
+  const [incomeLevel, setIncomeLevel] = useState<string>('');
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [isApproving, setIsApproving] = useState(false);
+
+  const handleApproveClick = (patient: PatientDetails) => {
+    setSelectedPatient(patient);
+    // Default to first income level from API, fallback to empty
+    if (incomeLevels.length > 0) {
+      setIncomeLevel(incomeLevels[0].incomeLevelName);
+      setDiscountPercentage(incomeLevels[0].discountPercentage);
+    } else {
+      setIncomeLevel('');
+      setDiscountPercentage(0);
+    }
+  };
+
+  const handleIncomeLevelChange = (value: string) => {
+    setIncomeLevel(value);
+    // Auto-fill discount from API income level data
+    const level = incomeLevels.find(l => l.incomeLevelName === value);
+    if (level) {
+      setDiscountPercentage(level.discountPercentage);
+    }
+  };
+
+  const handleApproveConfirm = async () => {
+    if (!selectedPatient?.patientId || !incomeLevel) return;
+    setIsApproving(true);
     const toastId = toast.loading('Approving patient...');
     try {
-      const patient = pendingApprovals.find(p => p.patientId === patientId);
-      if (patient) {
-        const result = await updateStatus({ ...patient, registrationStatus: RegistrationStatus.APPROVED });
-        if (result.success) {
-          mutate();
-          toast.dismiss(toastId);
-          toast.success('Patient approved successfully');
-        } else {
-          toast.dismiss(toastId);
-          toast.error(result.error || 'Failed to approve patient');
-        }
+      // Step 1: Update registration status to Approved
+      const statusResult = await updateStatus({
+        ...selectedPatient,
+        registrationStatus: RegistrationStatus.APPROVED,
+      });
+      if (!statusResult.success) {
+        toast.dismiss(toastId);
+        toast.error(statusResult.error || 'Failed to approve patient');
+        setIsApproving(false);
+        return;
       }
-    } catch (error) {
+
+      // Step 2: Approve KYC with income level and discount
+      const kycResult = await approveKyc({
+        ...selectedPatient,
+        incomeLevel,
+        discountPercentage,
+        updatedBy: 1,
+      });
+      
+      mutate();
+      toast.dismiss(toastId);
+      
+      if (kycResult.success) {
+        toast.success(`Patient approved with ${discountPercentage}% discount (${incomeLevel})`);
+      } else {
+        // Status updated but KYC approve failed - still approved but warn about income level
+        toast.success('Patient approved, but income level assignment failed. Please update manually.');
+      }
+    } catch {
       toast.dismiss(toastId);
       toast.error('Failed to approve patient');
+    } finally {
+      setIsApproving(false);
+      setSelectedPatient(null);
     }
   };
 
@@ -51,7 +106,7 @@ export function ApprovalsList() {
           toast.error(result.error || 'Failed to reject patient');
         }
       }
-    } catch (error) {
+    } catch {
       toast.dismiss(toastId);
       toast.error('Failed to reject patient');
     }
@@ -136,6 +191,19 @@ export function ApprovalsList() {
                           <span>{patient.aadharNumber}</span>
                         </div>
                       )}
+                      {patient.kycDocumentUrl && (
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          <a
+                            href={patient.kycDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            View KYC Document
+                          </a>
+                        </div>
+                      )}
                       {patient.dob && (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -153,7 +221,7 @@ export function ApprovalsList() {
                       <Button
                         size="sm"
                         variant="default"
-                        onClick={() => handleApprove(patient.patientId)}
+                        onClick={() => handleApproveClick(patient)}
                         className="flex-1 bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
@@ -183,10 +251,10 @@ export function ApprovalsList() {
                     <TableHead>Name</TableHead>
                     <TableHead>Mobile</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Aadhar</TableHead>
+                    <TableHead>KYC Document</TableHead>
                     <TableHead>Date of Birth</TableHead>
                     <TableHead>Registration Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -196,19 +264,33 @@ export function ApprovalsList() {
                       <TableCell>{patient.fullName || '-'}</TableCell>
                       <TableCell>{patient.mobileNumber}</TableCell>
                       <TableCell>{patient.email || '-'}</TableCell>
-                      <TableCell>{patient.aadharNumber || '-'}</TableCell>
+                      <TableCell>
+                        {patient.kycDocumentUrl ? (
+                          <a
+                            href={patient.kycDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <FileText className="w-4 h-4" />
+                            View
+                          </a>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
                       <TableCell>
                         {patient.dob ? new Date(patient.dob).toLocaleDateString() : '-'}
                       </TableCell>
                       <TableCell>
                         {new Date(patient.registrationDate).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell>
+                        <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="default"
-                            onClick={() => handleApprove(patient.patientId)}
+                            onClick={() => handleApproveClick(patient)}
                             className="bg-green-600 hover:bg-green-700"
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
@@ -232,6 +314,140 @@ export function ApprovalsList() {
           </>
         )}
       </CardContent>
+
+      {/* Approval Dialog with Income Level + Discount */}
+      <Dialog open={selectedPatient !== null} onOpenChange={() => setSelectedPatient(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Approve Patient</DialogTitle>
+            <DialogDescription>
+              Review patient details and set income level with discount percentage.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedPatient && (
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                <h4 className="font-semibold text-base mb-3">Patient Information</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Name:</span>
+                  </div>
+                  <div className="font-medium">{selectedPatient.fullName || '-'}</div>
+
+                  {selectedPatient.aadharNumber && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Aadhaar:</span>
+                      </div>
+                      <div className="font-medium">{selectedPatient.aadharNumber}</div>
+                    </>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Mobile:</span>
+                  </div>
+                  <div className="font-medium">{selectedPatient.mobileNumber}</div>
+
+                  {selectedPatient.dob && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">DOB:</span>
+                      </div>
+                      <div className="font-medium">
+                        {new Date(selectedPatient.dob).toLocaleDateString()}
+                      </div>
+                    </>
+                  )}
+
+                  {selectedPatient.kycDocumentUrl && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">KYC:</span>
+                      </div>
+                      <div>
+                        <a
+                          href={selectedPatient.kycDocumentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Income Level Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="incomeLevel">Income Level</Label>
+              <Select value={incomeLevel} onValueChange={handleIncomeLevelChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select income level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {incomeLevels.length > 0 ? (
+                    incomeLevels.map((level) => (
+                      <SelectItem key={level.id} value={level.incomeLevelName}>
+                        {level.incomeLevelName} ({level.discountPercentage}% discount)
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="Low">Low (Higher Discount)</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High (Lower Discount)</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Discount Percentage */}
+            <div className="space-y-2">
+              <Label htmlFor="discountPercentage">Discount Percentage</Label>
+              <Input
+                type="number"
+                id="discountPercentage"
+                value={discountPercentage.toString()}
+                onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+                min="0"
+                max="100"
+                step="1"
+              />
+              <p className="text-xs text-muted-foreground">
+                This discount will be applied to all medicine purchases.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button size="sm" variant="outline" onClick={() => setSelectedPatient(null)} disabled={isApproving}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleApproveConfirm}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isApproving || !incomeLevel}
+            >
+              {isApproving ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-1" />
+              )}
+              {isApproving ? 'Approving...' : 'Approve'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -22,7 +22,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to HTTPS backend
       '/api': {
-        target: process.env.VITE_API_BASE_URL || 'http://98.130.45.44:5001',
+        target: process.env.VITE_API_BASE_URL || 'http://16.112.72.213:5000',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
         rewrite: (path) => path.replace(/^\/api/, ''),

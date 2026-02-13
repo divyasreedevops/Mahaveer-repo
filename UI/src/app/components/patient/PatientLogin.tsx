@@ -54,11 +54,11 @@ export function PatientLogin() {
         toast.error(errorMsg);
       }
     } catch (err: any) {
-      toast.dismiss(toastId);
       const errorMsg = err.message || 'Failed to generate OTP. Please try again.';
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
+      toast.dismiss(toastId);
       setIsLoading(false);
     }
   };
@@ -127,6 +127,9 @@ export function PatientLogin() {
               // Approved but need to complete profile
               console.log('Approved but first login - completing profile');
               localStorage.setItem('patient_temp', JSON.stringify({ mobile, email, patientId }));
+              localStorage.setItem('patient_data', JSON.stringify(patient));
+              localStorage.setItem('patient_mobile', mobile);
+              localStorage.setItem('patient_is_first_login', 'true');
               toast.success('OTP verified! Please complete your profile.');
               navigate('/patient/details', { state: { patient, isFirstLogin: true, mobile, email } });
             } else {
@@ -142,6 +145,9 @@ export function PatientLogin() {
             // Unknown status - complete profile
             console.log('Unknown status - completing profile');
             localStorage.setItem('patient_temp', JSON.stringify({ mobile, email, patientId }));
+            localStorage.setItem('patient_data', JSON.stringify(patient));
+            localStorage.setItem('patient_mobile', mobile);
+            localStorage.setItem('patient_is_first_login', 'true');
             toast.success('OTP verified! Please complete your profile.');
             navigate('/patient/details', { state: { patient, isFirstLogin: true, mobile, email } });
           }
@@ -149,6 +155,8 @@ export function PatientLogin() {
           // Patient record not found (new registration) - complete profile
           console.log('Patient not found - new registration');
           localStorage.setItem('patient_temp', JSON.stringify({ mobile, email, patientId }));
+          localStorage.setItem('patient_mobile', mobile);
+          localStorage.setItem('patient_is_first_login', 'true');
           toast.success('OTP verified! Please complete your profile.');
           navigate('/patient/details', { state: { isFirstLogin: true, mobile, email, patientId } });
         }
@@ -158,11 +166,11 @@ export function PatientLogin() {
         toast.error(errorMsg);
       }
     } catch (err: any) {
-      toast.dismiss(toastId);
       const errorMsg = err.message || 'Invalid OTP. Please try again.';
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
+      toast.dismiss(toastId);
       setIsLoading(false);
     }
   };

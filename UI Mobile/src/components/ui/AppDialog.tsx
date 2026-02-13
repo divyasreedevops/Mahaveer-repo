@@ -6,6 +6,7 @@ import {
   Animated,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
@@ -26,6 +27,8 @@ export interface AppDialogProps {
   iconBgColor?: string;
   actions?: DialogAction[];
   onDismiss?: () => void;
+  /** Use Modal wrapper instead of absolute positioning. Required when rendered inside constrained containers like drawers. */
+  useModal?: boolean;
 }
 
 export const AppDialog: React.FC<AppDialogProps> = ({
@@ -37,6 +40,7 @@ export const AppDialog: React.FC<AppDialogProps> = ({
   iconBgColor,
   actions = [{ text: 'OK', variant: 'primary' }],
   onDismiss,
+  useModal = false,
 }) => {
   const { colors: c } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0.88)).current;
@@ -44,6 +48,7 @@ export const AppDialog: React.FC<AppDialogProps> = ({
 
   useEffect(() => {
     if (visible) {
+      if (__DEV__) console.log('[AppDialog] Showing dialog:', title, message);
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -58,12 +63,15 @@ export const AppDialog: React.FC<AppDialogProps> = ({
         }),
       ]).start();
     } else {
+      if (__DEV__) console.log('[AppDialog] Hiding dialog');
       scaleAnim.setValue(0.88);
       opacityAnim.setValue(0);
     }
   }, [visible]);
 
   if (!visible) return null;
+
+  if (__DEV__) console.log('[AppDialog] Rendering dialog, visible:', visible, 'title:', title);
 
   const getButtonStyle = (variant: string = 'primary') => {
     switch (variant) {
@@ -78,8 +86,13 @@ export const AppDialog: React.FC<AppDialogProps> = ({
     }
   };
 
+  const Wrapper = useModal ? Modal : View;
+  const wrapperProps = useModal
+    ? { transparent: true, animationType: 'none' as const, visible, statusBarTranslucent: true }
+    : { style: [StyleSheet.absoluteFillObject, dialogStyles.absoluteContainer], pointerEvents: 'box-none' as const };
+
   return (
-    <Modal transparent animationType="none" visible={visible} statusBarTranslucent>
+    <Wrapper {...(wrapperProps as any)}>
       <TouchableWithoutFeedback onPress={onDismiss}>
         <Animated.View
           style={[
@@ -164,11 +177,15 @@ export const AppDialog: React.FC<AppDialogProps> = ({
           </TouchableWithoutFeedback>
         </Animated.View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </Wrapper>
   );
 };
 
 const dialogStyles = {
+  absoluteContainer: {
+    zIndex: 9999,
+    elevation: 9999,
+  },
   overlay: {
     flex: 1,
     justifyContent: 'center' as const,

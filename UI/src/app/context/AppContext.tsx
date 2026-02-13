@@ -3,12 +3,15 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 export interface Medicine {
   id: string;
   name: string;
+  genericName?: string;
   type: 'injection' | 'tablet' | 'capsule' | 'syrup';
   dosage: string;
   quantityValue: string;
+  packingInfo?: string;
   disease: string;
   price: number;
   discount?: number; // per tablet/unit discount percentage
+  substitutes?: string[];
 }
 
 export interface InvoiceItem {
@@ -38,6 +41,10 @@ export interface Patient {
   aadhar: string; // aadhar number
   name: string;
   dateOfBirth: string;
+  aadhaarNumber?: string; // formatted Aadhaar for KYC
+  incomeDocumentUrl?: string; // KYC bank statement URL
+  incomeLevel?: 'low' | 'medium' | 'high'; // admin-assigned income tier
+  discountPercentage?: number; // admin-assigned discount based on income
   prescription: string | null;
   prescriptionData?: { // prescription details
     doctorName: string;
@@ -71,11 +78,15 @@ interface AppContextType {
   markItemReceived: () => void;
   checkAadharEligibility: (aadhar: string) => { eligible: boolean; message: string };
   
+  // KYC actions
+  updatePatientKYC: (name: string, dateOfBirth: string, aadhaarNumber: string, file?: File) => void;
+  
   // Admin actions
   adminLogin: (username: string, password: string) => boolean;
   logout: () => void;
-  approvePatient: (patientId: string) => void;
+  approvePatient: (patientId: string, incomeLevel?: 'low' | 'medium' | 'high', discountPercentage?: number) => void;
   rejectPatient: (patientId: string) => void;
+  updatePatientFromAdmin: (patientId: string, updates: Partial<Patient>) => void;
   
   // Admin data
   allPatients: Patient[];
@@ -91,16 +102,16 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Mock medicine inventory
 const initialInventory: Medicine[] = [
-  { id: 'm1', name: 'Paracetamol', type: 'tablet', dosage: '500mg', quantityValue: '10 qty/strip', disease: 'Fever', price: 50, discount: 50 * (0.5 + Math.random() * 0.25) },
-  { id: 'm2', name: 'Paracetamol', type: 'tablet', dosage: '650mg', quantityValue: '15 qty/strip', disease: 'Fever', price: 45, discount: 45 * (0.5 + Math.random() * 0.25) },
-  { id: 'm3', name: 'Ibuprofen', type: 'tablet', dosage: '400mg', quantityValue: '10 qty/strip', disease: 'Pain', price: 80, discount: 80 * (0.5 + Math.random() * 0.25) },
-  { id: 'm4', name: 'Ibuprofen', type: 'capsule', dosage: '200mg', quantityValue: '20 qty/strip', disease: 'Pain', price: 85, discount: 85 * (0.5 + Math.random() * 0.25) },
-  { id: 'm5', name: 'Amoxicillin', type: 'capsule', dosage: '250mg', quantityValue: '15 qty/strip', disease: 'Infection', price: 120, discount: 120 * (0.5 + Math.random() * 0.25) },
-  { id: 'm6', name: 'Amoxicillin', type: 'tablet', dosage: '500mg', quantityValue: '10 qty/strip', disease: 'Infection', price: 115, discount: 115 * (0.5 + Math.random() * 0.25) },
-  { id: 'm7', name: 'Cough Syrup', type: 'syrup', dosage: '100ml', quantityValue: '100 ml', disease: 'Cough', price: 150, discount: 150 * (0.5 + Math.random() * 0.25) },
-  { id: 'm8', name: 'Insulin Glargine', type: 'injection', dosage: '10ml', quantityValue: '10 ml', disease: 'Diabetes', price: 800, discount: 800 * (0.5 + Math.random() * 0.25) },
-  { id: 'm9', name: 'Insulin Lispro', type: 'injection', dosage: '10ml', quantityValue: '10 ml', disease: 'Diabetes', price: 750, discount: 750 * (0.5 + Math.random() * 0.25) },
-  { id: 'm10', name: 'Cetirizine', type: 'tablet', dosage: '10mg', quantityValue: '10 qty/strip', disease: 'Allergy', price: 60, discount: 60 * (0.5 + Math.random() * 0.25) },
+  { id: 'm1', name: 'Paracetamol', genericName: 'PARACETAMOL + CAFFEINE', type: 'tablet', dosage: '500mg', quantityValue: '10 qty/strip', packingInfo: 'Blister pack of 10 tablets', disease: 'Fever', price: 50, discount: 50 * (0.5 + Math.random() * 0.25), substitutes: ['Crocin', 'Dolo 650', 'P-500'] },
+  { id: 'm2', name: 'Crocin', genericName: 'PARACETAMOL', type: 'tablet', dosage: '650mg', quantityValue: '15 qty/strip', packingInfo: 'Blister pack of 15 tablets', disease: 'Fever', price: 45, discount: 45 * (0.5 + Math.random() * 0.25), substitutes: ['Paracetamol', 'Dolo 650', 'P-500'] },
+  { id: 'm3', name: 'Ibuprofen', genericName: 'IBUPROFEN', type: 'tablet', dosage: '400mg', quantityValue: '10 qty/strip', packingInfo: 'Blister pack of 10 tablets', disease: 'Pain', price: 80, discount: 80 * (0.5 + Math.random() * 0.25), substitutes: ['Brufen', 'Combiflam', 'Advil'] },
+  { id: 'm4', name: 'Brufen', genericName: 'IBUPROFEN', type: 'capsule', dosage: '200mg', quantityValue: '20 qty/strip', packingInfo: 'Blister pack of 20 capsules', disease: 'Pain', price: 85, discount: 85 * (0.5 + Math.random() * 0.25), substitutes: ['Ibuprofen', 'Combiflam', 'Advil'] },
+  { id: 'm5', name: 'Amoxicillin', genericName: 'AMOXICILLIN', type: 'capsule', dosage: '250mg', quantityValue: '15 qty/strip', packingInfo: 'Blister pack of 15 capsules', disease: 'Infection', price: 120, discount: 120 * (0.5 + Math.random() * 0.25), substitutes: ['Amoxil', 'Mox', 'Novamox'] },
+  { id: 'm6', name: 'Amoxil', genericName: 'AMOXICILLIN', type: 'tablet', dosage: '500mg', quantityValue: '10 qty/strip', packingInfo: 'Blister pack of 10 tablets', disease: 'Infection', price: 115, discount: 115 * (0.5 + Math.random() * 0.25), substitutes: ['Amoxicillin', 'Mox', 'Novamox'] },
+  { id: 'm7', name: 'Benadryl', genericName: 'DIPHENHYDRAMINE + AMMONIUM CHLORIDE', type: 'syrup', dosage: '100ml', quantityValue: '100 ml', packingInfo: 'Bottle of 100 ml', disease: 'Cough', price: 150, discount: 150 * (0.5 + Math.random() * 0.25), substitutes: ['Corex', 'Ascoril', 'Chericof'] },
+  { id: 'm8', name: 'Lantus', genericName: 'INSULIN GLARGINE', type: 'injection', dosage: '10ml', quantityValue: '10 ml', packingInfo: 'Vial of 10 ml', disease: 'Diabetes', price: 800, discount: 800 * (0.5 + Math.random() * 0.25), substitutes: ['Basalog', 'Glaritus', 'Toujeo'] },
+  { id: 'm9', name: 'Humalog', genericName: 'INSULIN LISPRO', type: 'injection', dosage: '10ml', quantityValue: '10 ml', packingInfo: 'Vial of 10 ml', disease: 'Diabetes', price: 750, discount: 750 * (0.5 + Math.random() * 0.25), substitutes: ['Apidra', 'NovoRapid', 'Admelog'] },
+  { id: 'm10', name: 'Zyrtec', genericName: 'CETIRIZINE HYDROCHLORIDE', type: 'tablet', dosage: '10mg', quantityValue: '10 qty/strip', packingInfo: 'Blister pack of 10 tablets', disease: 'Allergy', price: 60, discount: 60 * (0.5 + Math.random() * 0.25), substitutes: ['Cetirizine', 'Alerid', 'Cetzine'] },
 ];
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -185,6 +196,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updatePatientKYC = (name: string, dateOfBirth: string, aadhaarNumber: string, file?: File) => {
+    if (currentPatient) {
+      const updated = {
+        ...currentPatient,
+        name,
+        dateOfBirth,
+        aadhar: aadhaarNumber.replace(/\s/g, ''),
+        aadhaarNumber,
+        incomeDocumentUrl: file ? URL.createObjectURL(file) : currentPatient.incomeDocumentUrl,
+      };
+      setCurrentPatient(updated);
+      setAllPatients(prev =>
+        prev.map(p => p.id === currentPatient.id ? updated : p)
+      );
+    }
+  };
+
   const uploadPrescription = (file: File, doctorName: string, hospitalName: string) => {
     if (currentPatient) {
       const prescriptionUrl = URL.createObjectURL(file);
@@ -209,24 +237,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .sort(() => Math.random() - 0.5)
         .slice(0, numItems);
       
+      // Use patient-specific discount rate set by admin during approval
+      const patientDiscountRate = (currentPatient.discountPercentage || 0) / 100;
+      
       const items: InvoiceItem[] = selectedMedicines.map(med => {
         const quantity = Math.floor(Math.random() * 3) + 1;
-        const discount = med.discount ? med.discount * quantity : 0;
+        const itemTotal = med.price * quantity;
+        const itemDiscount = itemTotal * patientDiscountRate;
         return {
           medicineId: med.id,
           medicineName: med.name,
           brand: med.type,
           quantity,
           price: med.price,
-          discount,
-          total: med.price * quantity - discount,
+          discount: itemDiscount,
+          total: itemTotal - itemDiscount,
         };
       });
       
-      const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-      const taxes = subtotal * 0.05; // 5% tax
-      const discount = subtotal * 0.9; // 90% discount
-      const grandTotal = subtotal + taxes - discount;
+      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const discount = subtotal * patientDiscountRate;
+      const taxes = (subtotal - discount) * 0.05; // 5% tax applied after discount
+      const grandTotal = subtotal - discount + taxes;
       
       const invoice: Invoice = {
         invoiceNumber: `INV${Date.now()}`,
@@ -262,24 +294,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .sort(() => Math.random() - 0.5)
         .slice(0, numItems);
       
+      // Use patient-specific discount rate set by admin during approval
+      const patientDiscountRate = (currentPatient.discountPercentage || 0) / 100;
+      
       const items: InvoiceItem[] = selectedMedicines.map(med => {
         const quantity = Math.floor(Math.random() * 3) + 1;
-        const discount = med.discount ? med.discount * quantity : 0;
+        const itemTotal = med.price * quantity;
+        const itemDiscount = itemTotal * patientDiscountRate;
         return {
           medicineId: med.id,
           medicineName: med.name,
           brand: med.type,
           quantity,
           price: med.price,
-          discount,
-          total: med.price * quantity - discount,
+          discount: itemDiscount,
+          total: itemTotal - itemDiscount,
         };
       });
       
-      const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-      const taxes = subtotal * 0.05; // 5% tax
-      const discount = subtotal * 0.9; // 90% discount
-      const grandTotal = subtotal + taxes - discount;
+      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const discount = subtotal * patientDiscountRate;
+      const taxes = (subtotal - discount) * 0.05; // 5% tax applied after discount
+      const grandTotal = subtotal - discount + taxes;
       
       const invoice: Invoice = {
         invoiceNumber: `INV${Date.now()}`,
@@ -389,15 +425,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const approvePatient = (patientId: string) => {
-    setAllPatients(prev => 
-      prev.map(p => p.patientId === patientId ? { ...p, approvalStatus: 'approved' } : p)
+  const approvePatient = (patientId: string, incomeLevel?: 'low' | 'medium' | 'high', discountPercentage?: number) => {
+    setAllPatients(prev =>
+      prev.map(p => p.patientId === patientId
+        ? { ...p, approvalStatus: 'approved', incomeLevel, discountPercentage }
+        : p
+      )
     );
   };
 
   const rejectPatient = (patientId: string) => {
     setAllPatients(prev => 
       prev.map(p => p.patientId === patientId ? { ...p, approvalStatus: 'rejected' } : p)
+    );
+  };
+
+  const updatePatientFromAdmin = (patientId: string, updates: Partial<Patient>) => {
+    setAllPatients(prev =>
+      prev.map(p => p.patientId === patientId ? { ...p, ...updates } : p)
     );
   };
 
@@ -438,6 +483,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         registerPatient,
         verifyOTP,
         updatePatientDetails,
+        updatePatientKYC,
         uploadPrescription,
         generateInvoice,
         uploadAndGenerateInvoice,
@@ -449,6 +495,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logout,
         approvePatient,
         rejectPatient,
+        updatePatientFromAdmin,
         allPatients,
         pendingApprovals: allPatients.filter(p => p.approvalStatus === 'pending'),
         inventory,

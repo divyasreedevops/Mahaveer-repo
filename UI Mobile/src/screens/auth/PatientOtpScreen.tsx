@@ -98,7 +98,7 @@ export const PatientOtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleResend = async () => {
     setResendTimer(30);
     try {
-      const result = await loginPatient(mobileNumber, email);
+      const result = await loginPatient(mobileNumber);
       if (result.success) {
         showDialog({
           title: 'OTP Resent',
@@ -152,8 +152,6 @@ export const PatientOtpScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <KeyboardAvoidingView style={[s.flex, { backgroundColor: c.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={c.background} />
-      <LoadingOverlay visible={loading} message="Verifying..." />
-      <AppDialog {...dialogProps} />
 
       <ScrollView contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
         <Animated.View style={[s.header, { paddingTop: insets.top + spacing.lg, backgroundColor: c.background, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -207,6 +205,8 @@ export const PatientOtpScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </Animated.View>
       </ScrollView>
+      <LoadingOverlay visible={loading} message="Verifying..." />
+      <AppDialog {...dialogProps} />
     </KeyboardAvoidingView>
   );
 };

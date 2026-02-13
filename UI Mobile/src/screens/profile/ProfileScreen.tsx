@@ -54,7 +54,6 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <View style={[s.container, { backgroundColor: c.background }]}>
-      <AppDialog {...dialogProps} />
       <Header
         title="Profile"
         subtitle="Account settings"
@@ -157,6 +156,7 @@ export const ProfileScreen: React.FC = () => {
           style={{ marginTop: spacing.md, marginBottom: spacing['4xl'] }}
         />
       </ScrollView>
+      <AppDialog {...dialogProps} />
     </View>
   );
 };

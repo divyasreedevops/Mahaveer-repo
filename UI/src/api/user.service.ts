@@ -19,6 +19,8 @@ export const userService = {
         message: response.data.message || 'User created successfully',
       };
     } catch (error: any) {
+      const status = error.status || error.response?.status;
+      if (status === 400) return { success: false, error: error.message || 'Username and password are required' };
       return {
         success: false,
         error: error.message || 'Failed to create user',
