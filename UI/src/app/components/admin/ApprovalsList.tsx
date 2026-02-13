@@ -396,7 +396,7 @@ export function ApprovalsList() {
                   {incomeLevels.length > 0 ? (
                     incomeLevels.map((level) => (
                       <SelectItem key={level.id} value={level.incomeLevelName}>
-                        {level.incomeLevelName} ({level.discountPercentage}% discount)
+                        {level.incomeLevelName}
                       </SelectItem>
                     ))
                   ) : (
