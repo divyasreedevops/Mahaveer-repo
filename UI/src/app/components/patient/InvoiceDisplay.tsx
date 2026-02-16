@@ -1,37 +1,18 @@
 import { useApp } from '@/app/context/AppContext';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { Separator } from '@/app/components/ui/separator';
 import { Receipt, CreditCard } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { PatientDetails } from '@/types';
 
 export function InvoiceDisplay() {
   const { currentPatient, makePayment } = useApp();
-  const [patientData, setPatientData] = useState<PatientDetails | null>(null);
-
-  // Load patient data from localStorage to get discount percentage
-  useEffect(() => {
-    const storedData = localStorage.getItem('patient_data');
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData) as PatientDetails;
-        setPatientData(parsedData);
-      } catch (e) {
-        console.error('Failed to parse patient data', e);
-      }
-    }
-  }, []);
 
   if (!currentPatient?.invoice) {
     return null;
   }
 
   const { invoice, paymentStatus, prescriptionData, patientId } = currentPatient;
-  
-  // Get discount percentage from stored patient data (from API), fallback to current patient, then 90
-  const discountPercentage = patientData?.discountPercentage ?? currentPatient.discountPercentage ?? 90;
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -89,7 +70,7 @@ export function InvoiceDisplay() {
             <span>₹{invoice.taxes.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg text-green-600">
-            <span>Discount ({discountPercentage}%):</span>
+            <span>Discount:</span>
             <span>- ₹{invoice.discount.toFixed(2)}</span>
           </div>
           <Separator />

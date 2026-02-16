@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { Button } from '@/app/components/ui/button';
 import { Shield, User } from 'lucide-react';
 import logo from '@/assets/Mahaveer.png';
+import minfyLogo from '@/assets/minfy_logo.png';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface LandingPageProps {
@@ -59,8 +60,9 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
     <div className="min-h-screen flex flex-col items-center justify-between p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-4xl space-y-8">
         {/* Logo at top center */}
-        <div className="flex justify-center pt-4">
+        <div className="flex flex-col items-center justify-center pt-4">
           <img src={logo} alt="Mahaveer Hospital" className="h-24 md:h-32 object-contain" />
+          <h2 className="text-2xl font-bold text-blue-900 mt-2">Mahaveer Cancer Care Foundation</h2>
         </div>
 
         <div className="text-center space-y-2">
@@ -85,7 +87,7 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
                 <li>• Mobile OTP verification</li>
                 <li>• Upload prescription</li>
-                <li>• View invoice with 90% subsidy</li>
+                <li>• View invoice with subsidy</li>
                 <li>• Book pickup slot</li>
                 <li>• Track order status</li>
               </ul>
@@ -123,6 +125,13 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
 
       {/* Sponsors at bottom center */}
       <div className="fixed bottom-0 w-screen left-0 py-6 overflow-hidden bg-white m-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10">
+        
+        {/* Sponsored by label and logo */}
+        <div className="absolute top-2 right-4 flex items-center gap-2 z-20">
+          <span className="text-xs text-gray-500 font-medium">sponsored by</span>
+          <img src={minfyLogo} alt="Minfy" className="h-6 object-contain" />
+        </div>
+
         <h3 className="text-center text-lg font-semibold mb-4 text-gray-700">Our Sponsors</h3>
         <div className="relative">
           <div className="flex animate-scroll space-x-8">
