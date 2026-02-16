@@ -25,6 +25,8 @@ const mockPatients: PatientDetails[] = [
     updatedBy: 1,
     firstLogin: 0,
     kycDocumentUrl: null,
+    incomeLevel: 'low',
+    discountPercentage: 50,
   },
   {
     id: 2,
@@ -44,6 +46,8 @@ const mockPatients: PatientDetails[] = [
     updatedBy: 1,
     firstLogin: 1,
     kycDocumentUrl: null,
+    incomeLevel: 'medium',
+    discountPercentage: 30,
   },
 ];
 

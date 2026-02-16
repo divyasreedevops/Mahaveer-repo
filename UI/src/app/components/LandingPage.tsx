@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Shield, User } from 'lucide-react';
-import logo from '@/assets/Mahaveer.png';
 import minfyLogo from '@/assets/minfy_logo.png';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 

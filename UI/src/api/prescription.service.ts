@@ -82,9 +82,14 @@ export const prescriptionService = {
       };
     } catch (error: any) {
       console.error('Prescription upload error:', error);
+      const errorMessage = 
+        error.response?.data?.error || 
+        error.response?.data?.message ||
+        error.message || 
+        'Failed to upload prescription. Please check your connection and try again.';
       return {
         success: false,
-        error: error.response?.data?.error || error.message || 'Failed to upload prescription',
+        error: errorMessage,
       };
     }
   },
@@ -100,16 +105,16 @@ export const prescriptionService = {
     id: number
   ): Promise<ApiResponse<GenerateInvoiceResponse>> {
     try {
-      const requestData = {
-        medicines,
-        patientId,
-        prescriptionkey: prescriptionKey,
-        id,
-      };
-
       const response = await apiClient.post<GenerateInvoiceResponse>(
-        '/api/prescription/GenerateInvoice',
-        requestData
+        '/api/Prescription/GenerateInvoice',
+        medicines,
+        {
+          params: {
+            patientId,
+            prescriptionkey: prescriptionKey,
+            Id: id
+          }
+        }
       );
 
       return {
@@ -119,9 +124,14 @@ export const prescriptionService = {
       };
     } catch (error: any) {
       console.error('Invoice generation error:', error);
+      const errorMessage = 
+        error.response?.data?.error || 
+        error.response?.data?.message ||
+        error.message || 
+        'Failed to generate invoice. Please try again.';
       return {
         success: false,
-        error: error.response?.data?.error || error.message || 'Failed to generate invoice',
+        error: errorMessage,
       };
     }
   },
@@ -174,9 +184,14 @@ export const prescriptionService = {
       };
     } catch (error: any) {
       console.error('Upload and generate invoice error:', error);
+      const errorMessage = 
+        error.response?.data?.error || 
+        error.response?.data?.message ||
+        error.message || 
+        'Failed to process prescription. Please try again.';
       return {
         success: false,
-        error: error.message || 'Failed to process prescription',
+        error: errorMessage,
       };
     }
   },

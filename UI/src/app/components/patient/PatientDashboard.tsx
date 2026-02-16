@@ -6,26 +6,26 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { PatientDetailsForm } from './PatientDetailsForm';
 import { PrescriptionUploadForm } from './PrescriptionUploadForm';
+import type { PrescriptionResult } from './PrescriptionUploadForm';
 import { InvoiceDisplay } from './InvoiceDisplay';
 import { SlotBooking } from './SlotBooking';
-import { InvoiceView } from './InvoiceView';
 import { LogOut, User, Clock, XCircle } from 'lucide-react';
 import type { PatientDetails } from '@/types';
-import type { PatientData } from '@/app/components/PatientFlow';
+import type { GenerateInvoiceResponse } from '@/api/prescription.service';
 
 export function PatientDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
-  const { currentPatient, logout, makePayment } = useApp();
+  const { currentPatient, logout } = useApp();
   const [patientData, setPatientData] = useState<PatientDetails | null>(null);
-  const [dummyStep, setDummyStep] = useState<'upload' | 'invoice' | 'slot'>('upload');
-  const [dummyData, setDummyData] = useState<PatientData>(() => ({
-    mobile: patientData?.mobileNumber || currentPatient?.mobile || '',
-    name: patientData?.fullName || currentPatient?.name || '',
-    dateOfBirth: patientData?.dob || currentPatient?.dateOfBirth || '',
-    prescriptionUrl: '',
-  }));
+  const [invoiceData, setInvoiceData] = useState<GenerateInvoiceResponse | null>(null);
+  const [prescriptionInfo, setPrescriptionInfo] = useState<{
+    doctorName: string;
+    hospitalName: string;
+    medicines: { name: string; dosage?: string; frequency?: string }[];
+    prescriptionKey: string;
+  } | null>(null);
 
   // Load patient data from localStorage (with location dependency to reload on navigation)
   useEffect(() => {
@@ -40,6 +40,17 @@ export function PatientDashboard() {
       }
     }
   }, [location.pathname, location.state]);
+
+  const handleUploadComplete = (result: PrescriptionResult) => {
+    console.log('[PatientDashboard] Prescription upload complete:', result);
+    setPrescriptionInfo({
+      doctorName: result.prescription.doctorName,
+      hospitalName: result.prescription.hospitalName,
+      medicines: result.prescription.medicines,
+      prescriptionKey: result.prescription.prescriptionKey,
+    });
+    setInvoiceData(result.invoice);
+  };
 
   const handleLogout = async () => {
     const toastId = toast.loading('Logging out...');
@@ -59,15 +70,6 @@ export function PatientDashboard() {
 
   // Use patientData from localStorage over currentPatient from context
   const patient = patientData || currentPatient;
-
-  useEffect(() => {
-    setDummyData(prev => ({
-      ...prev,
-      mobile: patientData?.mobileNumber || currentPatient?.mobile || prev.mobile,
-      name: patientData?.fullName || currentPatient?.name || prev.name,
-      dateOfBirth: patientData?.dob || currentPatient?.dateOfBirth || prev.dateOfBirth,
-    }));
-  }, [patientData, currentPatient]);
 
   if (!patient) {
     return null;
@@ -192,12 +194,9 @@ export function PatientDashboard() {
   }
 
   // Step 3: Approved — show dashboard with prescription/invoice/slot
-  const showDetails = false; // KYC already complete at this point
-  const showPrescription = !currentPatient?.invoice;
-  const showInvoice = !!currentPatient?.invoice;
-  const showSlot = currentPatient?.paymentStatus === 'paid' || dummyStep === 'slot';
-  const showUploadForm = showPrescription && dummyStep === 'upload';
-  const showDummyInvoice = showPrescription && dummyStep === 'invoice';
+  const showPrescriptionUpload = !invoiceData && !currentPatient?.invoice;
+  const showInvoice = !!invoiceData || !!currentPatient?.invoice;
+  const showSlot = currentPatient?.paymentStatus === 'paid';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -223,27 +222,17 @@ export function PatientDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6">
-        {showDetails && <PatientDetailsForm />}
-        {showUploadForm && (
-          <PrescriptionUploadForm
-            onInvoiceRequested={() => setDummyStep('invoice')}
+        {showPrescriptionUpload && (
+          <PrescriptionUploadForm onUploadComplete={handleUploadComplete} />
+        )}
+        {showInvoice && (
+          <InvoiceDisplay
+            apiInvoice={invoiceData}
+            prescriptionInfo={prescriptionInfo}
           />
         )}
-        {showDummyInvoice && (
-          <InvoiceView
-            embedded
-            patientData={dummyData}
-            updateData={(data) => setDummyData(prev => ({ ...prev, ...data }))}
-            onProceed={() => {
-              makePayment();
-              setDummyStep('slot');
-            }}
-          />
-        )}
-        {showInvoice && <InvoiceDisplay />}
         {showSlot && (
           <SlotBooking
-            forceShow={dummyStep === 'slot' && currentPatient?.paymentStatus !== 'paid'}
             patientId={patientData?.patientId || currentPatient?.patientId}
           />
         )}

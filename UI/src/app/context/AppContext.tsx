@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { prescriptionService } from '@/api';
+import type { MedicineFromPrescription } from '@/api/prescription.service';
 
 export interface Medicine {
   id: string;
@@ -49,6 +51,8 @@ export interface Patient {
   prescriptionData?: { // prescription details
     doctorName: string;
     hospitalName: string;
+    medicines?: MedicineFromPrescription[]; // Medicines extracted from prescription
+    prescriptionKey?: string; // S3 key for uploaded prescription
   };
   invoice: Invoice | null;
   paymentStatus: 'pending' | 'paid';
@@ -72,7 +76,7 @@ interface AppContextType {
   updatePatientDetails: (name: string, dateOfBirth: string, aadhar: string) => void;
   uploadPrescription: (file: File, doctorName: string, hospitalName: string) => void;
   generateInvoice: () => void;
-  uploadAndGenerateInvoice: (file: File, doctorName: string, hospitalName: string) => void;
+  uploadAndGenerateInvoice: (file: File, doctorName: string, hospitalName: string) => Promise<void>;
   makePayment: () => void;
   bookSlot: (date: string, time: string) => void;
   markItemReceived: () => void;
@@ -282,75 +286,94 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const uploadAndGenerateInvoice = (file: File, doctorName: string, hospitalName: string) => {
-    if (currentPatient) {
-      console.log('AppContext - uploadAndGenerateInvoice called');
-      
-      const prescriptionUrl = URL.createObjectURL(file);
-      
-      // Generate invoice data
-      const numItems = Math.floor(Math.random() * 3) + 3;
-      const selectedMedicines = [...inventory]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, numItems);
-      
-      // Use patient-specific discount rate set by admin during approval
-      const patientDiscountRate = (currentPatient.discountPercentage || 0) / 100;
-      
-      const items: InvoiceItem[] = selectedMedicines.map(med => {
-        const quantity = Math.floor(Math.random() * 3) + 1;
-        const itemTotal = med.price * quantity;
-        const itemDiscount = itemTotal * patientDiscountRate;
-        return {
-          medicineId: med.id,
-          medicineName: med.name,
-          brand: med.type,
-          quantity,
-          price: med.price,
-          discount: itemDiscount,
-          total: itemTotal - itemDiscount,
-        };
-      });
-      
-      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const discount = subtotal * patientDiscountRate;
-      const taxes = (subtotal - discount) * 0.05; // 5% tax applied after discount
-      const grandTotal = subtotal - discount + taxes;
-      
-      const invoice: Invoice = {
-        invoiceNumber: `INV${Date.now()}`,
-        items,
-        subtotal,
-        taxes,
-        discount,
-        grandTotal,
-      };
-      
-      // Update patient with both prescription and invoice in one go
-      const updated = { 
-        ...currentPatient, 
-        prescription: prescriptionUrl, 
-        prescriptionData: { doctorName, hospitalName },
-        invoice 
-      };
-      
-      console.log('AppContext - Combined update:', updated);
-      
-      setCurrentPatient(updated);
-      setAllPatients(prev => 
-        prev.map(p => p.id === currentPatient.id ? updated : p)
+  const uploadAndGenerateInvoice = async (file: File, doctorName: string, hospitalName: string) => {
+    if (!currentPatient) {
+      console.error('AppContext - No current patient');
+      throw new Error('No patient logged in. Please log in first.');
+    }
+
+    console.log('AppContext - uploadAndGenerateInvoice called');
+    
+    try {
+      // Call the prescription API to upload and process the prescription
+      const result = await prescriptionService.uploadAndGenerateInvoice(
+        file,
+        currentPatient.patientId,
+        parseInt(currentPatient.id.replace('p', ''))
       );
+
+      if (!result.success || !result.data) {
+        console.error('AppContext - API call failed:', result.error);
+        throw new Error(result.error || 'Failed to upload prescription. Please try again.');
+      }
+
+      const { prescription: prescriptionData, invoice: invoiceData } = result.data;
+
+      console.log('AppContext - API response:', {
+        medicines: prescriptionData.medicines,
+        doctorName: prescriptionData.doctorName,
+        hospitalName: prescriptionData.hospitalName,
+        prescriptionKey: prescriptionData.prescriptionKey,
+      });
+
+      // Create a local URL for the uploaded file (for display purposes)
+      const prescriptionUrl = URL.createObjectURL(file);
+
+      // Map API invoice response to local Invoice interface
+      const invoice: Invoice = {
+        invoiceNumber: invoiceData.invoiceNumber,
+        items: invoiceData.items.map(item => ({
+          medicineId: item.inventoryId?.toString() || '',
+          medicineName: item.medicineName,
+          brand: '', // Not provided in API response
+          quantity: 1, // Not specified in API response, default to 1
+          price: item.mrp,
+          discount: item.discount,
+          total: item.finalPrice,
+        })),
+        subtotal: invoiceData.subtotal,
+        taxes: 0, // Not provided in API response
+        discount: invoiceData.totalDiscount,
+        grandTotal: invoiceData.totalAmount,
+      };
+
+      // Update patient with prescription data, extracted info, and invoice
+      const updated: Patient = {
+        ...currentPatient,
+        prescription: prescriptionUrl,
+        prescriptionData: {
+          doctorName: prescriptionData.doctorName || doctorName,
+          hospitalName: prescriptionData.hospitalName || hospitalName,
+          medicines: prescriptionData.medicines,
+          prescriptionKey: prescriptionData.prescriptionKey,
+        },
+        invoice,
+      };
+
+      console.log('AppContext - Updated patient with API data:', updated);
+
+      setCurrentPatient(updated);
+      setAllPatients(prev =>
+        prev.map(p => (p.id === currentPatient.id ? updated : p))
+      );
+    } catch (error: any) {
+      console.error('AppContext - uploadAndGenerateInvoice error:', error);
+      // Re-throw error to let component handle it with proper error message
+      throw error;
     }
   };
 
   const makePayment = () => {
+    console.log('AppContext - makePayment called');
+    console.log('AppContext - currentPatient:', currentPatient);
+    
+    // Automatically assign next day at 10:00 AM as pickup slot
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const slotDate = tomorrow.toISOString().split('T')[0];
+    const slotTime = '10:00';
+    
     if (currentPatient) {
-      // Automatically assign next day at 10:00 AM as pickup slot
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const slotDate = tomorrow.toISOString().split('T')[0];
-      const slotTime = '10:00';
-      
       const updated = { 
         ...currentPatient, 
         paymentStatus: 'paid' as const,
@@ -358,10 +381,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
         slotTime,
         lastMedicineDate: new Date().toISOString() // Update when medicine is issued
       };
+      console.log('AppContext - Updated patient:', updated);
       setCurrentPatient(updated);
       setAllPatients(prev => 
         prev.map(p => p.id === currentPatient.id ? updated : p)
       );
+      console.log('AppContext - State updated successfully');
+    } else {
+      // Handle payment when working with localStorage only
+      console.log('AppContext - No current patient in context, updating localStorage');
+      try {
+        const storedData = localStorage.getItem('patient_data');
+        if (storedData) {
+          const patientData = JSON.parse(storedData);
+          const updatedData = {
+            ...patientData,
+            paymentStatus: 'paid',
+            slotDate,
+            slotTime,
+            lastMedicineDate: new Date().toISOString()
+          };
+          localStorage.setItem('patient_data', JSON.stringify(updatedData));
+          console.log('AppContext - Payment updated in localStorage:', updatedData);
+        } else {
+          console.log('AppContext - No patient data in localStorage');
+        }
+      } catch (error) {
+        console.error('AppContext - Error updating localStorage:', error);
+      }
     }
   };
 
@@ -376,12 +423,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const markItemReceived = () => {
+    console.log('AppContext - markItemReceived called');
     if (currentPatient) {
       const updated = { ...currentPatient, itemReceived: true };
       setCurrentPatient(updated);
       setAllPatients(prev => 
         prev.map(p => p.id === currentPatient.id ? updated : p)
       );
+      console.log('AppContext - Item marked as received in context');
+    } else {
+      // Handle when working with localStorage only
+      console.log('AppContext - No current patient, updating localStorage');
+      try {
+        const storedData = localStorage.getItem('patient_data');
+        if (storedData) {
+          const patientData = JSON.parse(storedData);
+          const updatedData = {
+            ...patientData,
+            itemReceived: true
+          };
+          localStorage.setItem('patient_data', JSON.stringify(updatedData));
+          console.log('AppContext - Item marked as received in localStorage');
+        }
+      } catch (error) {
+        console.error('AppContext - Error updating localStorage:', error);
+      }
     }
   };
 

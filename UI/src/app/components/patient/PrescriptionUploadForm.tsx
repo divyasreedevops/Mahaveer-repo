@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
-import { useApp } from '@/app/context/AppContext';
+import React, { useState, useRef, useEffect } from 'react';
+import { prescriptionService } from '@/api';
+import type { UploadPrescriptionResponse, GenerateInvoiceResponse } from '@/api/prescription.service';
 import { useToast } from '@/lib';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -7,12 +8,16 @@ import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Upload, FileText, CheckCircle } from 'lucide-react';
 
-interface PrescriptionUploadFormProps {
-  onInvoiceRequested?: (data: { file: File; doctorName: string; hospitalName: string }) => void;
+export interface PrescriptionResult {
+  prescription: UploadPrescriptionResponse;
+  invoice: GenerateInvoiceResponse;
 }
 
-export function PrescriptionUploadForm({ onInvoiceRequested }: PrescriptionUploadFormProps) {
-  const { currentPatient, uploadAndGenerateInvoice } = useApp();
+interface PrescriptionUploadFormProps {
+  onUploadComplete?: (result: PrescriptionResult) => void;
+}
+
+export function PrescriptionUploadForm({ onUploadComplete }: PrescriptionUploadFormProps) {
   const toast = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -20,75 +25,156 @@ export function PrescriptionUploadForm({ onInvoiceRequested }: PrescriptionUploa
   const [hospitalName, setHospitalName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [patientData, setPatientData] = useState<{ patientId: string; id: number } | null>(null);
+  const [prescriptionData, setPrescriptionData] = useState<UploadPrescriptionResponse | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-        
-        // Mock OCR - automatically extract doctor and hospital names
-        const mockDoctorNames = ['Dr. Sharma', 'Dr. Patel', 'Dr. Kumar', 'Dr. Singh', 'Dr. Reddy'];
-        const mockHospitalNames = ['City Hospital', 'Apollo Clinic', 'Max Healthcare', 'Fortis Hospital', 'AIIMS'];
-        
-        const randomDoctor = mockDoctorNames[Math.floor(Math.random() * mockDoctorNames.length)];
-        const randomHospital = mockHospitalNames[Math.floor(Math.random() * mockHospitalNames.length)];
-        
-        setDoctorName(randomDoctor);
-        setHospitalName(randomHospital);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a prescription file');
-      toast.error('Please select a prescription file');
-      return;
-    }
-    if (!doctorName || !hospitalName) {
-      setError('Please enter doctor name and hospital name');
-      toast.error('Please enter doctor name and hospital name');
-      return;
-    }
-    
-    setIsLoading(true);
-    const toastId = toast.loading('Uploading prescription and generating invoice...');
-    
+  
+  // Load patient data from localStorage on mount
+  useEffect(() => {
     try {
-      console.log('PrescriptionUploadForm - Uploading and generating invoice...');
+      const storedData = localStorage.getItem('patient_data');
       
-      if (onInvoiceRequested) {
-        onInvoiceRequested({ file: selectedFile, doctorName, hospitalName });
-      } else {
-        // Use combined function to update prescription and generate invoice in one state update
-        uploadAndGenerateInvoice(selectedFile, doctorName, hospitalName);
-
-        // Wait for state to propagate
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        console.log('PrescriptionUploadForm - Complete. Current patient has invoice:', !!currentPatient?.invoice);
+      if (storedData) {
+        const parsed = JSON.parse(storedData);
+        
+        if (parsed.patientId && parsed.id) {
+          setPatientData({ patientId: parsed.patientId, id: parsed.id });
+        }
       }
-      
-      toast.dismiss(toastId);
-      toast.success('Invoice generated successfully! Review your invoice below.');
-      setError('');
     } catch (err) {
-      console.error('PrescriptionUploadForm - Error:', err);
+      console.error('Error loading patient data:', err);
+    }
+  }, []);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    
+    if (!file) return;
+    
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size exceeds 10MB limit');
+      toast.error('File size exceeds 10MB. Please select a smaller file.');
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload an image or PDF file.');
+      toast.error('Invalid file type. Please upload JPG, PNG, GIF, or PDF.');
+      return;
+    }
+
+    if (!patientData) {
+      setError('Patient data not found. Please log in again.');
+      toast.error('Patient data not found. Please log in again.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setError('');
+    
+    // Load preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.onerror = () => {
+      setError('Failed to read file');
+      toast.error('Failed to read file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+
+    // Upload prescription and extract medicines immediately
+    setIsLoading(true);
+    const toastId = toast.loading('Uploading prescription and extracting details...');
+
+    try {
+      const uploadResult = await prescriptionService.uploadPrescription(
+        file,
+        patientData.patientId,
+        patientData.id
+      );
+
       toast.dismiss(toastId);
-      toast.error('Failed to upload prescription');
-      setError('Failed to upload prescription');
+
+      if (!uploadResult.success || !uploadResult.data) {
+        throw new Error(uploadResult.error || 'Failed to upload prescription');
+      }
+
+      const data = uploadResult.data;
+      setPrescriptionData(data);
+
+      // Auto-fill doctor and hospital names from API response
+      if (data.doctorName) {
+        setDoctorName(data.doctorName);
+      }
+      if (data.hospitalName) {
+        setHospitalName(data.hospitalName);
+      }
+
+      toast.success(`Successfully extracted ${data.medicines.length} medicines from prescription`);
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      const errorMessage = err?.message || 'Failed to upload prescription. Please try again.';
+      toast.error(errorMessage);
+      setError(errorMessage);
+      setSelectedFile(null);
+      setPreview(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (currentPatient?.invoice) {
-    return null; // Invoice already generated
+  const handleGenerateInvoice = async () => {
+    if (!prescriptionData || !patientData) {
+      toast.error('Please upload a prescription first');
+      return;
+    }
+
+    setIsLoading(true);
+    const toastId = toast.loading(`Generating invoice for ${prescriptionData.medicines.length} medicines...`);
+
+    try {
+      const invoiceResult = await prescriptionService.generateInvoice(
+        prescriptionData.medicines,
+        patientData.patientId,
+        prescriptionData.prescriptionKey,
+        patientData.id
+      );
+
+      toast.dismiss(toastId);
+
+      if (!invoiceResult.success || !invoiceResult.data) {
+        throw new Error(invoiceResult.error || 'Failed to generate invoice');
+      }
+
+      const result: PrescriptionResult = {
+        prescription: prescriptionData,
+        invoice: invoiceResult.data,
+      };
+
+      setIsComplete(true);
+      toast.success('Invoice generated! Review your invoice below.');
+
+      if (onUploadComplete) {
+        onUploadComplete(result);
+      }
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      const errorMessage = err?.message || 'Failed to generate invoice. Please try again.';
+      toast.error(errorMessage);
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isComplete) {
+    return null; // Invoice generated, parent component will show invoice
   }
 
   return (
@@ -99,7 +185,7 @@ export function PrescriptionUploadForm({ onInvoiceRequested }: PrescriptionUploa
           <CardTitle>Upload Prescription</CardTitle>
         </div>
         <CardDescription>
-          Upload your prescription and provide doctor details to generate an invoice
+          Upload your prescription - doctor details and medicines will be automatically extracted using AI
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -141,41 +227,80 @@ export function PrescriptionUploadForm({ onInvoiceRequested }: PrescriptionUploa
         
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="doctorName">Referred Doctor Name</Label>
+            <Label htmlFor="doctorName" className="flex items-center gap-1">
+              Referred Doctor Name
+              <span className="text-xs text-muted-foreground ml-1">(Optional)</span>
+            </Label>
             <Input
               id="doctorName"
               type="text"
-              placeholder="Auto-filled from prescription"
+              placeholder="Leave empty to auto-extract from prescription"
               value={doctorName}
               onChange={(e) => setDoctorName(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Auto-extracted from prescription (editable)
+              Will be automatically extracted from the prescription by AI
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="hospitalName">Hospital Name</Label>
+            <Label htmlFor="hospitalName" className="flex items-center gap-1">
+              Hospital Name
+              <span className="text-xs text-muted-foreground ml-1">(Optional)</span>
+            </Label>
             <Input
               id="hospitalName"
               type="text"
-              placeholder="Auto-filled from prescription"
+              placeholder="Leave empty to auto-extract from prescription"
               value={hospitalName}
               onChange={(e) => setHospitalName(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Auto-extracted from prescription (editable)
+              Will be automatically extracted from the prescription by AI
             </p>
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+            <p className="text-sm text-red-600 font-medium">{error}</p>
+          </div>
+        )}
         
-        {selectedFile && (
-          <Button onClick={handleUpload} className="w-full" disabled={isLoading}>
-            {isLoading ? 'Uploading...' : 'Upload & Generate Invoice'}
-          </Button>
+        {prescriptionData && (
+          <div className="space-y-4 p-4 rounded-lg bg-green-50 border border-green-200">
+            <h3 className="font-semibold text-green-800">Extracted Medicines ({prescriptionData.medicines.length})</h3>
+            <div className="space-y-2">
+              {prescriptionData.medicines.map((medicine, index) => (
+                <div key={index} className="p-3 bg-white rounded border border-green-200">
+                  <p className="font-medium text-gray-900">{medicine.name}</p>
+                  {medicine.dosage && (
+                    <p className="text-sm text-gray-600">Dosage: {medicine.dosage}</p>
+                  )}
+                  {medicine.frequency && (
+                    <p className="text-sm text-gray-600">Frequency: {medicine.frequency}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <Button 
+              onClick={handleGenerateInvoice} 
+              className="w-full" 
+              disabled={isLoading}
+              type="button"
+            >
+              {isLoading ? (
+                <>
+                  <span className="mr-2">Generating Invoice...</span>
+                  <span className="animate-pulse">⏳</span>
+                </>
+              ) : (
+                'Generate Invoice'
+              )}
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
   );
-}
+}  

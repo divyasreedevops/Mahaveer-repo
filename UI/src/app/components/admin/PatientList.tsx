@@ -9,7 +9,7 @@ import { Button } from '@/app/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
-import { Users, Phone, Calendar, CreditCard, CheckCircle, Clock, Package, PackageCheck, Edit, MapPin, Loader2 } from 'lucide-react';
+import { Users, Phone, Calendar, CheckCircle, Clock, Package, PackageCheck, Edit, Loader2 } from 'lucide-react';
 import { TableSkeleton, CardListSkeleton } from '@/app/components/ui/loaders';
 import { RegistrationStatus } from '@/types';
 import type { PatientDetails } from '@/types';

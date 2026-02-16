@@ -53,58 +53,63 @@ export function InventoryManagement() {
   };
 
   const handleAddMedicine = async () => {
-    if (name && dosage && quantityValue && disease && price) {
-      setIsUpdating(true);
-      try {
-        const newItem: InventoryItem = {
-          id: 0, // Backend will assign ID
-          name,
-          genericName: genericName || name,
-          type,
-          disease,
-          dosageValue: parseFloat(dosage),
-          dosageUnits: dosageUnit,
-          quantityValue: parseInt(quantityValue),
-          quantityUnits: quantityUnit,
-          packingInfo: packingInfo || `Package of ${quantityValue} ${quantityUnit}`,
-          mrp: parseFloat(price),
-          discount: discount ? parseFloat(discount) : 0,
-          finalPrice: parseFloat(price) - (discount ? parseFloat(discount) : 0),
-          substitutes: substitutes ? substitutes.split(',').map(s => s.trim()).filter(s => s) : undefined,
-          status: 1,
-          createdBy: null,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString(),
-          updatedBy: null,
-        };
+    // Validate required fields
+    if (!name || !dosage || !quantityValue || !disease || !price) {
+      toast.error('Please fill in all required fields (Name, Dosage, Quantity, Disease, Price)');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const newItem: InventoryItem = {
+        id: 0, // Backend will assign ID
+        name,
+        genericName: genericName || name,
+        type,
+        disease,
+        dosageValue: parseFloat(dosage),
+        dosageUnits: dosageUnit,
+        quantityValue: parseInt(quantityValue),
+        quantityUnits: quantityUnit,
+        packingInfo: packingInfo || `Package of ${quantityValue} ${quantityUnit}`,
+        mrp: parseFloat(price),
+        discount: discount ? parseFloat(discount) : 0,
+        finalPrice: parseFloat(price) - (discount ? parseFloat(discount) : 0),
+        substitutes: substitutes ? substitutes.split(',').map(s => s.trim()).filter(s => s) : undefined,
+        status: 1,
+        createdBy: null,
+        createdDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
+        updatedBy: null,
+      };
+      
+      const result = await inventoryService.addInventoryItem(newItem);
+      if (result.success) {
+        mutate();
+        toast.success(result.message || 'Medicine added successfully');
         
-        const result = await inventoryService.addInventoryItem(newItem);
-        if (result.success) {
-          mutate();
-          toast.success(result.message || 'Medicine added successfully');
-          
-          // Reset form
-          setName('');
-          setGenericName('');
-          setPackingInfo('');
-          setSubstitutes('');
-          setType('tablet');
-          setDosage('');
-          setDosageUnit('mg');
-          setQuantityValue('');
-          setQuantityUnit('qty/strip');
-          setDisease('');
-          setPrice('');
-          setDiscount('');
-          setIsAddDialogOpen(false);
-        } else {
-          toast.error(result.error || 'Failed to add medicine');
-        }
-      } catch (error) {
-        toast.error('Failed to add medicine');
-      } finally {
-        setIsUpdating(false);
+        // Reset form
+        setName('');
+        setGenericName('');
+        setPackingInfo('');
+        setSubstitutes('');
+        setType('tablet');
+        setDosage('');
+        setDosageUnit('mg');
+        setQuantityValue('');
+        setQuantityUnit('qty/strip');
+        setDisease('');
+        setPrice('');
+        setDiscount('');
+        setIsAddDialogOpen(false);
+      } else {
+        toast.error(result.error || 'Failed to add medicine');
       }
+    } catch (error) {
+      console.error('Add medicine error:', error);
+      toast.error('Failed to add medicine');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -180,55 +185,65 @@ export function InventoryManagement() {
   };
 
   const handleUpdateMedicine = async () => {
-    if (editingMedicine && name && dosage && quantityValue && disease && price) {
-      setIsUpdating(true);
-      try {
-        const updatedItem: InventoryItem = {
-          ...editingMedicine,
-          name,
-          genericName: genericName || name,
-          type,
-          disease,
-          dosageValue: parseFloat(dosage),
-          dosageUnits: dosageUnit,
-          quantityValue: parseInt(quantityValue),
-          quantityUnits: quantityUnit,
-          packingInfo: packingInfo || `Package of ${quantityValue} ${quantityUnit}`,
-          mrp: parseFloat(price),
-          discount: discount ? parseFloat(discount) : 0,
-          finalPrice: parseFloat(price) - (discount ? parseFloat(discount) : 0),
-          substitutes: substitutes ? substitutes.split(',').map(s => s.trim()).filter(s => s) : undefined,
-          updatedDate: new Date().toISOString(),
-        };
-       
-        const result = await inventoryService.updateInventoryItem(updatedItem);
-        if (result.success) {
-          mutate();
-          toast.success(result.message || 'Medicine updated successfully');
-          
-          // Reset form
-          setName('');
-          setGenericName('');
-          setPackingInfo('');
-          setSubstitutes('');
-          setType('tablet');
-          setDosage('');
-          setDosageUnit('mg');
-          setQuantityValue('');
-          setQuantityUnit('qty/strip');
-          setDisease('');
-          setPrice('');
-          setDiscount('');
-          setIsAddDialogOpen(false);
-          setEditingMedicine(null);
-        } else {
-          toast.error(result.error || 'Failed to update medicine');
-        }
-      } catch (error) {
-        toast.error('Failed to update medicine');
-      } finally {
-        setIsUpdating(false);
+    // Validate required fields
+    if (!editingMedicine) {
+      toast.error('No medicine selected for editing');
+      return;
+    }
+    
+    if (!name || !dosage || !quantityValue || !disease || !price) {
+      toast.error('Please fill in all required fields (Name, Dosage, Quantity, Disease, Price)');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const updatedItem: InventoryItem = {
+        ...editingMedicine,
+        name,
+        genericName: genericName || name,
+        type,
+        disease,
+        dosageValue: parseFloat(dosage),
+        dosageUnits: dosageUnit,
+        quantityValue: parseInt(quantityValue),
+        quantityUnits: quantityUnit,
+        packingInfo: packingInfo || `Package of ${quantityValue} ${quantityUnit}`,
+        mrp: parseFloat(price),
+        discount: discount ? parseFloat(discount) : 0,
+        finalPrice: parseFloat(price) - (discount ? parseFloat(discount) : 0),
+        substitutes: substitutes ? substitutes.split(',').map(s => s.trim()).filter(s => s) : undefined,
+        updatedDate: new Date().toISOString(),
+      };
+     
+      const result = await inventoryService.updateInventoryItem(updatedItem);
+      if (result.success) {
+        mutate();
+        toast.success(result.message || 'Medicine updated successfully');
+        
+        // Reset form
+        setName('');
+        setGenericName('');
+        setPackingInfo('');
+        setSubstitutes('');
+        setType('tablet');
+        setDosage('');
+        setDosageUnit('mg');
+        setQuantityValue('');
+        setQuantityUnit('qty/strip');
+        setDisease('');
+        setPrice('');
+        setDiscount('');
+        setIsAddDialogOpen(false);
+        setEditingMedicine(null);
+      } else {
+        toast.error(result.error || 'Failed to update medicine');
       }
+    } catch (error) {
+      console.error('Update medicine error:', error);
+      toast.error('Failed to update medicine');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
