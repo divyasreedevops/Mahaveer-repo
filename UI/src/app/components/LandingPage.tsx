@@ -61,7 +61,7 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
       <div className="w-full max-w-4xl space-y-8">
         {/* Logo at top center */}
         <div className="flex flex-col items-center justify-center pt-4">
-          <img src={logo} alt="Mahaveer Hospital" className="h-24 md:h-32 object-contain" />
+          {/* <img src={logo} alt="Mahaveer Hospital" className="h-24 md:h-32 object-contain" /> */}
           <h2 className="text-2xl font-bold text-blue-900 mt-2">Mahaveer Cancer Care Foundation</h2>
         </div>
 
