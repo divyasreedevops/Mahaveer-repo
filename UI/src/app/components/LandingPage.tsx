@@ -56,7 +56,7 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex flex-col items-center justify-between p-4 pb-52 md:pb-56 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-4xl space-y-8">
         {/* Logo at top center */}
         <div className="flex flex-col items-center justify-center pt-4">
