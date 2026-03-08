@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Shield, User } from 'lucide-react';
+import containerSvg from '@/assets/Container.svg';
 import minfyLogo from '@/assets/minfy_logo.png';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -56,12 +57,16 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between p-4 pb-52 md:pb-56 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex flex-col items-center justify-between p-4 pb-80 md:pb-56 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-4xl space-y-8">
         {/* Logo at top center */}
-        <div className="flex flex-col items-center justify-center pt-4">
-          {/* <img src={logo} alt="Mahaveer Hospital" className="h-24 md:h-32 object-contain" /> */}
-          <h2 className="text-2xl font-bold text-blue-900 mt-2 text-center">Mahaveer Cancer Care Foundation</h2>
+        <div className="flex flex-col items-center justify-center pt-4 gap-4">
+          <div className="w-20 md:w-24">
+            <img src={containerSvg} alt="Mahaveer Cancer Care Logo" className="w-full h-auto object-contain" />
+          </div>
+          <p className="font-['Inter:Bold',sans-serif] font-bold text-center text-[#1c398e] text-xl md:text-2xl tracking-wide">
+            Mahaveer Cancer Care Foundation
+          </p>
         </div>
 
         <div className="text-center space-y-2">
@@ -120,6 +125,9 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
             </CardContent>
           </Card>
         </div>
+
+        {/* Extra spacing for mobile UX to ensure sponsors don't overlay the admin button */}
+        <div className="h-20 md:hidden" />
       </div>
 
       {/* Sponsors at bottom center */}
