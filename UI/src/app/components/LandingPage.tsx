@@ -22,35 +22,35 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
   };
 
   const sponsors = [
-    { 
+    {
       name: 'Dr. Reddys',
       logo: 'https://images.unsplash.com/photo-1719319384332-82f969b6e48c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxEciUyMFJlZGR5cyUyMGxvZ28lMjBwaGFybWFjZXV0aWNhbHxlbnwxfHx8fDE3NzAzNzUxMDh8MA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'Cipla',
       logo: 'https://images.unsplash.com/photo-1698506455775-42635fdd16a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaGFybWFjeSUyMG1lZGljYWwlMjBjYXBzdWxlJTIwcGlsbHxlbnwxfHx8fDE3NzAzNzUxMTN8MA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'Novartis',
       logo: 'https://images.unsplash.com/photo-1728470164693-95f5e7bade80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpY2luZSUyMHBoYXJtYWNldXRpY2FsJTIwY29tcGFueXxlbnwxfHx8fDE3NzAzNzUxMTN8MA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'Lupin',
       logo: 'https://images.unsplash.com/photo-1737264791501-4c0626832e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaGFybWFjZXV0aWNhbCUyMGluZHVzdHJ5JTIwYnVpbGRpbmd8ZW58MXx8fHwxNzcwMzc1MTEzfDA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'Alkem Labs',
       logo: 'https://images.unsplash.com/photo-1768498950658-87ecfe232b59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpY2FsJTIwc2NpZW5jZSUyMGxhYm9yYXRvcnl8ZW58MXx8fHwxNzcwMzc1MTE0fDA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'Aurobindo Pharma',
       logo: 'https://images.unsplash.com/photo-1659019722097-17e298f43491?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGhjYXJlJTIwcGhhcm1hY3klMjBwaWxsc3xlbnwxfHx8fDE3NzAzNzUxMTR8MA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'Glenmark',
       logo: 'https://images.unsplash.com/photo-1662467150566-f3f12de2ee57?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxHbGVubWFyayUyMHBoYXJtYWNldXRpY2FsJTIwbG9nb3xlbnwxfHx8fDE3NzAzNzUxMTB8MA&ixlib=rb-4.1.0&q=80&w=1080'
     },
-    { 
+    {
       name: 'GSK',
       logo: 'https://images.unsplash.com/photo-1698365140635-42894e5e63b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpY2luZSUyMGJvdHRsZXMlMjBwaGFybWFjeXxlbnwxfHx8fDE3NzAzMDM1MDN8MA&ixlib=rb-4.1.0&q=80&w=1080'
     }
@@ -126,13 +126,11 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
           </Card>
         </div>
 
-        {/* Extra spacing for mobile UX to ensure sponsors don't overlay the admin button */}
-        <div className="h-20 md:hidden" />
       </div>
 
       {/* Sponsors at bottom center */}
       <div className="fixed bottom-0 w-screen left-0 py-6 overflow-hidden bg-white m-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10">
-        
+
         {/* Sponsored by label and logo */}
         <div className="absolute top-2 right-4 flex items-center gap-2 z-20">
           <span className="text-xs text-gray-500 font-medium">sponsored by</span>
