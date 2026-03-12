@@ -101,13 +101,13 @@ export function InvoiceDisplay({ apiInvoice, prescriptionInfo }: InvoiceDisplayP
   const itemReceived = localItemReceived || currentPatient?.itemReceived || storedItemReceived;
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto border-gray-200 shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
-          <Receipt className="w-6 h-6" />
-          <CardTitle>Invoice</CardTitle>
+          <Receipt className="w-6 h-6 text-blue-600" />
+          <CardTitle className="text-gray-800 font-normal">Invoice</CardTitle>
         </div>
-        <div className="space-y-1 text-sm text-muted-foreground">
+        <div className="space-y-1 text-sm text-gray-500 font-light">
           <div>Invoice Number: {apiInvoice?.invoiceNumber || currentPatient?.invoice?.invoiceNumber}</div>
           <div>Patient ID: {apiInvoice?.patientId || storedPatientId}</div>
           {apiInvoice?.generatedDate && (
@@ -238,7 +238,7 @@ export function InvoiceDisplay({ apiInvoice, prescriptionInfo }: InvoiceDisplayP
         </div>
 
         {paymentStatus === 'pending' && (
-          <Button onClick={handleMakePayment} className="w-full" size="lg">
+          <Button onClick={handleMakePayment} className="w-full bg-gray-800 hover:bg-gray-900" size="lg">
             <CreditCard className="w-5 h-5 mr-2" />
             Make Payment
           </Button>
@@ -246,9 +246,9 @@ export function InvoiceDisplay({ apiInvoice, prescriptionInfo }: InvoiceDisplayP
 
         {paymentStatus === 'paid' && (
           <div className="space-y-4">
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
               <p className="text-lg text-green-700">✓ Payment Completed Successfully</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-gray-500 font-light mt-2">
                 Confirmation sent to {storedMobile}
                 {storedEmail && ` and ${storedEmail}`}
               </p>

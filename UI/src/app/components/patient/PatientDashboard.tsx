@@ -88,12 +88,12 @@ export function PatientDashboard() {
   // Step 1: KYC incomplete — show PatientDetailsForm (regardless of approval status)
   if (!hasKycComplete) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b">
+      <div className="min-h-screen bg-blue-50">
+        <header className="bg-white border-b border-gray-100 shadow-sm">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <User className="w-6 h-6" />
-              <h1 className="text-2xl">Patient Portal</h1>
+              <User className="w-6 h-6 text-blue-600" />
+              <h1 className="text-2xl text-gray-800 font-normal">Patient Portal</h1>
             </div>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
@@ -114,12 +114,12 @@ export function PatientDashboard() {
   
   if (status === 'pending') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b">
+      <div className="min-h-screen bg-blue-50">
+        <header className="bg-white border-b border-gray-100 shadow-sm">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <User className="w-6 h-6" />
-              <h1 className="text-2xl">Patient Portal</h1>
+              <User className="w-6 h-6 text-blue-600" />
+              <h1 className="text-2xl text-gray-800 font-normal">Patient Portal</h1>
             </div>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
@@ -162,12 +162,12 @@ export function PatientDashboard() {
 
   if (status === 'rejected') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b">
+      <div className="min-h-screen bg-blue-50">
+        <header className="bg-white border-b border-gray-100 shadow-sm">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <User className="w-6 h-6" />
-              <h1 className="text-2xl">Patient Portal</h1>
+              <User className="w-6 h-6 text-blue-600" />
+              <h1 className="text-2xl text-gray-800 font-normal">Patient Portal</h1>
             </div>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
@@ -199,12 +199,12 @@ export function PatientDashboard() {
   const showSlot = currentPatient?.paymentStatus === 'paid';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-blue-50">
+      <header className="bg-white border-b border-gray-100 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <User className="w-6 h-6" />
-            <h1 className="text-2xl">Patient Portal</h1>
+            <User className="w-6 h-6 text-blue-600" />
+            <h1 className="text-2xl text-gray-800 font-normal">Patient Portal</h1>
           </div>
           <div className="flex items-center gap-4">
             {(patientData?.patientId || currentPatient?.patientId) && (

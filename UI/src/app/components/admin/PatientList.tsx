@@ -212,13 +212,13 @@ export function PatientList() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-gray-100 shadow-lg rounded-2xl">
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
-            <Users className="w-6 h-6" />
-            <CardTitle>Approved & Paid Patients</CardTitle>
+            <Users className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-gray-800 font-normal">Approved &amp; Paid Patients</CardTitle>
           </div>
-          <CardDescription>Loading patients...</CardDescription>
+          <CardDescription className="text-gray-500 font-light">Loading patients...</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="md:hidden">
@@ -234,13 +234,13 @@ export function PatientList() {
 
   return (
     <>
-      <Card>
+      <Card className="border-gray-100 shadow-lg rounded-2xl">
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
-            <Users className="w-6 h-6" />
-            <CardTitle>Approved & Paid Patients</CardTitle>
+            <Users className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-gray-800 font-normal">Approved &amp; Paid Patients</CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-gray-500 font-light">
             Total: {approvedPatients.length} patient(s) | Pending Pickup: {pendingPatients.length} | Collected: {collectedPatients.length}
           </CardDescription>
         </CardHeader>

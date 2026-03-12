@@ -120,13 +120,13 @@ export function InventoryManagement() {
   const getTypeColor = (type: string | null) => {
     switch (type) {
       case 'injection':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-purple-500 text-white';
       case 'tablet':
-        return 'bg-green-100 text-green-800';
+        return 'bg-blue-500 text-white';
       case 'capsule':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-green-500 text-white';
       case 'syrup':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-orange-500 text-white';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -266,13 +266,13 @@ export function InventoryManagement() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-gray-100 shadow-lg rounded-2xl">
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
-            <Package className="w-6 h-6" />
-            <CardTitle>Inventory Management</CardTitle>
+            <Package className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-gray-800 font-normal">Inventory Management</CardTitle>
           </div>
-          <CardDescription>Loading...</CardDescription>
+          <CardDescription className="text-gray-500 font-light">Loading...</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -293,15 +293,15 @@ export function InventoryManagement() {
         existingInventory={inventory}
       />
       
-      <Card>
+      <Card className="border-gray-100 shadow-lg rounded-2xl">
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Package className="w-6 h-6" />
-              <CardTitle>Inventory Management</CardTitle>
+              <Package className="w-6 h-6 text-purple-600" />
+              <CardTitle className="text-gray-800 font-normal">Inventory Management</CardTitle>
             </div>
-            <CardDescription>
+            <CardDescription className="text-gray-500 font-light">
               Total medicines: {inventory.length}
             </CardDescription>
           </div>

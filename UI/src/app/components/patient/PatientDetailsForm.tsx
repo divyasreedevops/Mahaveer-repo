@@ -231,20 +231,20 @@ export function PatientDetailsForm() {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto border-gray-100 shadow-lg rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
-          <User className="w-6 h-6" />
-          <CardTitle>Personal Details & KYC</CardTitle>
+          <User className="w-6 h-6 text-blue-600" />
+          <CardTitle className="text-gray-800 font-normal">Personal Details &amp; KYC</CardTitle>
         </div>
-        <CardDescription>
+        <CardDescription className="text-gray-500 font-light">
           Please provide your details and upload income document for verification
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name" className="text-gray-700 font-normal">Full Name</Label>
             <Input
               id="name"
               type="text"
@@ -255,7 +255,7 @@ export function PatientDetailsForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="dob">Date of Birth</Label>
+            <Label htmlFor="dob" className="text-gray-700 font-normal">Date of Birth</Label>
             <Input
               id="dob"
               type="date"
@@ -290,7 +290,7 @@ export function PatientDetailsForm() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="kyc">Income Document (Bank Statement)</Label>
+            <Label htmlFor="kyc" className="text-gray-700 font-normal">Income Document (Bank Statement)</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="kyc"
@@ -317,7 +317,7 @@ export function PatientDetailsForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal" disabled={isLoading}>
             {isLoading ? 'Saving...' : 'Continue'}
           </Button>
         </form>

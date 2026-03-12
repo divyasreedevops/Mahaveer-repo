@@ -27,12 +27,12 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-blue-50">
+      <header className="bg-white border-b border-gray-100 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Shield className="w-6 h-6" />
-            <h1 className="text-2xl">Admin Dashboard</h1>
+            <Shield className="w-6 h-6 text-purple-600" />
+            <h1 className="text-2xl text-gray-800 font-normal">Admin Dashboard</h1>
           </div>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
@@ -43,10 +43,10 @@ export function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="approvals" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="approvals">Approvals</TabsTrigger>
-            <TabsTrigger value="patients">Patients</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsList className="bg-white border border-gray-100 shadow-sm">
+            <TabsTrigger value="approvals" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700">Approvals</TabsTrigger>
+            <TabsTrigger value="patients" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700">Patients</TabsTrigger>
+            <TabsTrigger value="inventory" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700">Inventory</TabsTrigger>
           </TabsList>
 
           <TabsContent value="approvals">

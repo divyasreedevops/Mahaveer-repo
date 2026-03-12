@@ -178,19 +178,19 @@ export function PrescriptionUploadForm({ onUploadComplete }: PrescriptionUploadF
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto border-gray-200 shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
-          <FileText className="w-6 h-6" />
-          <CardTitle>Upload Prescription</CardTitle>
+          <FileText className="w-6 h-6 text-blue-600" />
+          <CardTitle className="text-gray-800 font-normal">Upload Prescription</CardTitle>
         </div>
-        <CardDescription>
+        <CardDescription className="text-gray-500 font-light">
           Upload your prescription - doctor details and medicines will be automatically extracted using AI
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div
-          className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+          className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-blue-300 transition-colors"
           onClick={() => fileInputRef.current?.click()}
         >
           {preview ? (
@@ -207,7 +207,7 @@ export function PrescriptionUploadForm({ onUploadComplete }: PrescriptionUploadF
             </div>
           ) : (
             <div className="space-y-4">
-              <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+              <Upload className="w-12 h-12 mx-auto text-gray-400" />
               <div>
                 <p className="text-lg">Click to upload prescription</p>
                 <p className="text-sm text-muted-foreground">
@@ -227,7 +227,7 @@ export function PrescriptionUploadForm({ onUploadComplete }: PrescriptionUploadF
         
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="doctorName" className="flex items-center gap-1">
+            <Label htmlFor="doctorName" className="flex items-center gap-1 text-gray-700 font-normal">
               Referred Doctor Name
               <span className="text-xs text-muted-foreground ml-1">(Optional)</span>
             </Label>
@@ -243,7 +243,7 @@ export function PrescriptionUploadForm({ onUploadComplete }: PrescriptionUploadF
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="hospitalName" className="flex items-center gap-1">
+            <Label htmlFor="hospitalName" className="flex items-center gap-1 text-gray-700 font-normal">
               Hospital Name
               <span className="text-xs text-muted-foreground ml-1">(Optional)</span>
             </Label>
@@ -285,7 +285,7 @@ export function PrescriptionUploadForm({ onUploadComplete }: PrescriptionUploadF
             
             <Button 
               onClick={handleGenerateInvoice} 
-              className="w-full" 
+              className="w-full bg-gray-800 hover:bg-gray-900" 
               disabled={isLoading}
               type="button"
             >

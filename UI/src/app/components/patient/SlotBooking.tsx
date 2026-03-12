@@ -52,18 +52,18 @@ export function SlotBooking({ forceShow = false, patientId, slotDate, slotTime }
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto border-gray-200 shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
-          <Calendar className="w-6 h-6" />
-          <CardTitle>Pickup Slot</CardTitle>
+          <Calendar className="w-6 h-6 text-blue-600" />
+          <CardTitle className="text-gray-800 font-normal">Pickup Slot</CardTitle>
         </div>
-        <CardDescription>
+        <CardDescription className="text-gray-500 font-light">
           Your pickup slot has been automatically assigned
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="p-4 bg-blue-50 rounded-lg space-y-3">
+        <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-3">
           <div className="flex items-center gap-2">
             <Hash className="w-5 h-5 text-blue-600" />
             <span className="text-lg">
@@ -91,7 +91,7 @@ export function SlotBooking({ forceShow = false, patientId, slotDate, slotTime }
           <Button 
             onClick={handleMarkItemReceived}
             disabled={isLoading}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full bg-gray-800 hover:bg-gray-900"
           >
             <Package className="w-5 h-5 mr-2" />
             {isLoading ? 'Processing...' : 'Mark Item as Received'}

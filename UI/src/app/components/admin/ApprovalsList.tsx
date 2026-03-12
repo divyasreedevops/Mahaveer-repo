@@ -114,13 +114,13 @@ export function ApprovalsList() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-gray-100 shadow-lg rounded-2xl">
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-6 h-6" />
-            <CardTitle>Pending Approvals</CardTitle>
+            <Clock className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-gray-800 font-normal">Pending Approvals</CardTitle>
           </div>
-          <CardDescription>Loading pending approvals...</CardDescription>
+          <CardDescription className="text-gray-500 font-light">Loading pending approvals...</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="md:hidden">
@@ -135,13 +135,13 @@ export function ApprovalsList() {
   }
 
   return (
-    <Card>
+    <Card className="border-gray-100 shadow-lg rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
-          <Clock className="w-6 h-6" />
-          <CardTitle>Pending Approvals</CardTitle>
+          <Clock className="w-6 h-6 text-purple-600" />
+          <CardTitle className="text-gray-800 font-normal">Pending Approvals</CardTitle>
         </div>
-        <CardDescription>
+        <CardDescription className="text-gray-500 font-light">
           Review and approve patient registrations
         </CardDescription>
       </CardHeader>
@@ -160,7 +160,7 @@ export function ApprovalsList() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">
+                        <CardTitle className="text-base">
                           {patient.fullName || 'Unnamed Patient'}
                         </CardTitle>
                         <CardDescription className="text-xs mt-1">
@@ -198,7 +198,7 @@ export function ApprovalsList() {
                             href={patient.kycDocumentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="text-gray-600 hover:underline"
                           >
                             View KYC Document
                           </a>
@@ -270,7 +270,7 @@ export function ApprovalsList() {
                             href={patient.kycDocumentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline flex items-center gap-1"
+                            className="text-gray-600 hover:underline flex items-center gap-1"
                           >
                             <FileText className="w-4 h-4" />
                             View
@@ -374,7 +374,7 @@ export function ApprovalsList() {
                           href={selectedPatient.kycDocumentUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-gray-600 hover:underline"
                         >
                           View Document
                         </a>

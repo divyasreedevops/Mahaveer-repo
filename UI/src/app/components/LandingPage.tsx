@@ -1,5 +1,5 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Shield, User } from 'lucide-react';
 import containerSvg from '@/assets/Container.svg';
@@ -12,6 +12,7 @@ interface LandingPageProps {
 
 export function LandingPage({ onSelectPortal }: LandingPageProps) {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'home' | 'about'>('home');
 
   const handlePortalSelect = (portal: 'patient' | 'admin') => {
     if (onSelectPortal) {
@@ -57,101 +58,271 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between p-4 pb-80 md:pb-56 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-4xl space-y-8">
-        {/* Logo at top center */}
-        <div className="flex flex-col items-center justify-center pt-4 gap-4">
-          <div className="w-20 md:w-24">
-            <img src={containerSvg} alt="Mahaveer Cancer Care Logo" className="w-full h-auto object-contain" />
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Top Navigation Bar */}
+      <nav className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo and Foundation Name */}
+            <div className="flex items-center gap-3">
+              <div className="w-10">
+                <img src={containerSvg} alt="Mahaveer Cancer Care Logo" className="w-full h-auto object-contain" />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-[#1c398e]">
+                Mahaveer Cancer Care Foundation
+              </span>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('home')}
+                className={`px-5 py-2.5 rounded-lg text-sm font-normal transition-all ${
+                  activeTab === 'home'
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >Login</button>
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`px-5 py-2.5 rounded-lg text-sm font-normal transition-all ${
+                  activeTab === 'about'
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >About Us</button>
+            </div>
           </div>
-          <p className="font-['Inter:Bold',sans-serif] font-bold text-center text-[#1c398e] text-xl md:text-2xl tracking-wide">
-            Mahaveer Cancer Care Foundation
-          </p>
         </div>
+      </nav>
 
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl">Pharmacy Management System</h1>
-          <p className="text-xl text-muted-foreground">
-            Select your portal to continue
-          </p>
-        </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center px-8 pb-48 bg-blue-50">
+        {activeTab === 'home' ? (
+          <div className="w-full max-w-5xl space-y-5 pt-[30px]">
+            {/* Header Section */}
+            <div className="text-center space-y-2.5">
+              <h1 className="text-3xl text-gray-800 font-normal tracking-tight">
+                Pharmacy Management System
+              </h1>
+              <p className="text-base text-gray-500 font-light mt-2.5">
+                Select your portal to continue
+              </p>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handlePortalSelect('patient')}>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-8 h-8 text-blue-600" />
-                <CardTitle className="text-2xl">Patient Portal</CardTitle>
+            {/* Portal Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+              {/* Patient Portal Card */}
+              <div
+                onClick={() => handlePortalSelect('patient')}
+                className="group bg-white rounded-2xl p-10 border border-gray-100 hover:border-blue-100 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
+              >
+                <div className="flex-1 space-y-8 flex flex-col">
+                  {/* Icon and Title */}
+                  <div className="flex items-start gap-5">
+                    <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                      <User className="w-8 h-8 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <h2 className="text-xl text-gray-800 font-normal mb-2">Patient Portal</h2>
+                      <p className="text-sm text-gray-500 font-light leading-relaxed">Register, upload prescription, &amp; manage your orders</p>
+                    </div>
+                  </div>
+
+                  {/* Features List */}
+                  <ul className="space-y-3 text-sm text-gray-600 font-light pl-0 flex-1">
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                      <span>Mobile OTP verification</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                      <span>Upload prescription</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                      <span>View invoice with subsidy</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                      <span>Book pickup slot</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                      <span>Track order status</span>
+                    </li>
+                  </ul>
+
+                  {/* CTA Button */}
+                  <Button
+                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 font-normal"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePortalSelect('patient');
+                    }}
+                  >
+                    Continue as Patient
+                  </Button>
+                </div>
               </div>
-              <CardDescription>
-                Register, upload prescription, and manage your orders
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• Mobile OTP verification</li>
-                <li>• Upload prescription</li>
-                <li>• View invoice with subsidy</li>
-                <li>• Book pickup slot</li>
-                <li>• Track order status</li>
-              </ul>
-              <Button className="w-full" onClick={() => handlePortalSelect('patient')}>
-                Continue as Patient
-              </Button>
-            </CardContent>
-          </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handlePortalSelect('admin')}>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="w-8 h-8 text-purple-600" />
-                <CardTitle className="text-2xl">Admin Portal</CardTitle>
+              {/* Admin Portal Card */}
+              <div
+                onClick={() => handlePortalSelect('admin')}
+                className="group bg-white rounded-2xl p-10 border border-gray-100 hover:border-purple-100 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
+              >
+                <div className="flex-1 space-y-8 flex flex-col">
+                  {/* Icon and Title */}
+                  <div className="flex items-start gap-5">
+                    <div className="w-16 h-16 rounded-2xl bg-purple-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                      <Shield className="w-8 h-8 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <h2 className="text-xl text-gray-800 font-normal mb-2">Admin Portal</h2>
+                      <p className="text-sm text-gray-500 font-light leading-relaxed">
+                        Manage patients and inventory
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Features List */}
+                  <ul className="space-y-3 text-sm text-gray-600 font-light pl-0 flex-1">
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-purple-400"></div>
+                      <span>View all registered patients</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-purple-400"></div>
+                      <span>Track payment status</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-purple-400"></div>
+                      <span>Manage medicine inventory</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-purple-400"></div>
+                      <span>Add/remove medicines</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-1 h-1 rounded-full bg-purple-400"></div>
+                      <span>Approve/reject registrations</span>
+                    </li>
+                  </ul>
+
+                  {/* CTA Button */}
+                  <Button
+                    className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 font-normal"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePortalSelect('admin');
+                    }}
+                  >Continue as Admin</Button>
+                </div>
               </div>
-              <CardDescription>
-                Manage patients and inventory
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• View all registered patients</li>
-                <li>• Track payment status</li>
-                <li>• Manage medicine inventory</li>
-                <li>• Add/remove medicines</li>
-                <li>• Approve/reject registrations</li>
-              </ul>
-              <Button className="w-full mt-2" variant="secondary" onClick={() => handlePortalSelect('admin')}>
-                Continue as Admin
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-3xl space-y-5">
+            {/* About Us Content */}
+            <div className="text-center space-y-[15px]">
+              <h1 className="text-3xl text-gray-800 font-normal tracking-tight pt-5">
+                About Us
+              </h1>
+              <p className="text-base text-gray-500 font-light mt-2.5 mb-5">
+                Committed to accessible healthcare for all
+              </p>
+            </div>
 
+            <div className="bg-white rounded-2xl border border-gray-100 p-12 space-y-10">
+              <div className="space-y-3">
+                <h2 className="text-lg text-gray-800 font-normal">Our Mission</h2>
+                <p className="text-sm text-gray-600 leading-relaxed font-light">
+                  Mahaveer Cancer Care Foundation is dedicated to providing affordable and accessible cancer care to patients across all economic backgrounds. Through our income-based discount system and partnerships with leading pharmaceutical companies, we ensure that no patient is denied treatment due to financial constraints.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-lg text-gray-800 font-normal">What We Do</h2>
+                <p className="text-sm text-gray-600 leading-relaxed font-light">
+                  Our Pharmacy Management System streamlines the process of prescription fulfillment, KYC verification, and discount allocation. Patients can upload prescriptions, get approved for subsidies, and book convenient pickup slots—all through a simple digital interface.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-lg text-gray-800 font-normal">Our Impact</h2>
+                <p className="text-sm text-gray-600 leading-relaxed font-light">
+                  With the support of our generous sponsors and partners, we've helped thousands of patients access life-saving medications at significantly reduced costs. Every patient undergoes a thorough KYC process to ensure subsidies reach those who need them most.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-lg text-gray-800 font-normal">Bank Details for Donations</h2>
+                <div className="text-sm text-gray-600 font-light space-y-2">
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">Account Name:</span>
+                    <span>Mahaveer Cancer Care Foundation</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">Bank Name:</span>
+                    <span>State Bank of India</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">Account Number:</span>
+                    <span>1234 5678 9012</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">IFSC Code:</span>
+                    <span>SBIN0004587</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">Branch:</span>
+                    <span>Jayanagar 4th Block, Bengaluru</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">Account Type:</span>
+                    <span>Current Account</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">UPI ID:</span>
+                    <span>donate@mahaveercare</span>
+                  </div>
+                  <div className="grid grid-cols-[140px_1fr] gap-2">
+                    <span className="text-gray-500">SWIFT Code:</span>
+                    <span>SBININBBXXX (For International Donations)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Sponsors at bottom center */}
-      <div className="fixed bottom-0 w-screen left-0 py-6 overflow-hidden bg-white m-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10">
+      {/* Sponsors at bottom */}
+      <div className="fixed bottom-0 w-screen left-0 py-6 overflow-hidden bg-white border-t border-gray-100 z-10">
 
         {/* Sponsored by label and logo */}
-        <div className="absolute top-2 right-4 flex items-center gap-2 z-20">
-          <span className="text-xs text-gray-500 font-medium">sponsored by</span>
-          <img src={minfyLogo} alt="Minfy" className="h-6 object-contain" />
+        <div className="absolute top-2 right-6 flex items-center gap-2 z-20">
+          <span className="text-[10px] text-gray-400 font-light uppercase tracking-wide">sponsored by</span>
+          <img src={minfyLogo} alt="Minfy" className="h-4 object-contain opacity-50" />
         </div>
 
-        <h3 className="text-center text-lg font-semibold mb-4 text-gray-700">Our Sponsors</h3>
+        <div className="text-center mb-4">
+          <h3 className="text-[11px] font-normal text-gray-400 uppercase tracking-widest">Our Sponsors</h3>
+        </div>
+
         <div className="relative">
-          <div className="flex animate-scroll space-x-8">
-            {/* Duplicate the sponsors array for seamless loop */}
-            {[...sponsors, ...sponsors].map((sponsor, index) => (
+          <div className="flex animate-scroll hover:[animation-play-state:paused] space-x-8">
+            {[...sponsors, ...sponsors, ...sponsors].map((sponsor, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 px-6 py-3 bg-white rounded-lg shadow-sm border border-gray-200 flex items-center gap-3"
+                className="flex-shrink-0 px-6 py-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-3 hover:bg-white hover:border-gray-200 transition-all duration-200"
               >
                 <ImageWithFallback
                   src={sponsor.logo}
                   alt={sponsor.name}
-                  className="h-10 w-10 object-cover rounded"
+                  className="h-8 w-8 object-cover rounded-lg"
                 />
-                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                <span className="text-xs font-light text-gray-600 whitespace-nowrap">
                   {sponsor.name}
                 </span>
               </div>

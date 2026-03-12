@@ -7,7 +7,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/app/components/ui/input-otp';
-import { Phone, AlertCircle } from 'lucide-react';
+import { Phone, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 
 export function PatientLogin() {
@@ -177,14 +177,22 @@ export function PatientLogin() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="relative min-h-screen flex items-center justify-center p-4 bg-blue-50">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 text-gray-600 hover:text-gray-800"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Button>
+        <Card className="w-full max-w-md border-gray-100 shadow-lg rounded-2xl">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Phone className="w-6 h-6" />
-              <CardTitle>Patient Portal</CardTitle>
+              <Phone className="w-6 h-6 text-blue-600" />
+              <CardTitle className="text-gray-800 font-normal">Patient Portal</CardTitle>
             </div>
-            <CardDescription>
+            <CardDescription className="text-gray-500 font-light">
               {step === 'mobile' 
                 ? 'Enter your mobile number to get started'
                 : 'Enter the OTP sent to your mobile'}
@@ -194,7 +202,7 @@ export function PatientLogin() {
           {step === 'mobile' ? (
             <form onSubmit={handleMobileSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="mobile">Mobile Number</Label>
+                <Label htmlFor="mobile" className="text-gray-700 font-normal">Mobile Number</Label>
                 <Input
                   id="mobile"
                   type="tel"
@@ -202,16 +210,18 @@ export function PatientLogin() {
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   maxLength={10}
+                  className="border-gray-100"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email (optional)</Label>
+                <Label htmlFor="email" className="text-gray-700 font-normal">Email (optional)</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="border-gray-100"
                 />
               </div>
               {error && (
@@ -220,7 +230,7 @@ export function PatientLogin() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <Button type="submit" className="w-full" disabled={isLoading || mobile.length !== 10}>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal" disabled={isLoading || mobile.length !== 10}>
                 {isLoading ? 'Sending OTP...' : 'Send OTP'}
               </Button>
             </form>
@@ -236,7 +246,7 @@ export function PatientLogin() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label>Enter OTP</Label>
+                <Label className="text-gray-700 font-normal">Enter OTP</Label>
                 <div className="flex justify-center">
                   <InputOTP
                     maxLength={6}
@@ -270,12 +280,12 @@ export function PatientLogin() {
                     setGeneratedOtp('');
                     setError('');
                   }}
-                  className="flex-1"
+                  className="flex-1 border-gray-100"
                   disabled={isLoading}
                 >
                   Back
                 </Button>
-                <Button type="submit" className="flex-1" disabled={otp.length !== 6 || isLoading}>
+                <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal" disabled={otp.length !== 6 || isLoading}>
                   {isLoading ? 'Verifying...' : 'Verify OTP'}
                 </Button>
               </div>
