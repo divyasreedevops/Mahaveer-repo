@@ -66,13 +66,13 @@ export function SlotBooking({ forceShow = false, patientId, slotDate, slotTime }
         <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-3">
           <div className="flex items-center gap-2">
             <Hash className="w-5 h-5 text-blue-600" />
-            <span className="text-lg">
+            <span className="text-lg text-gray-700">
               <strong>Registration ID:</strong> {resolvedPatientId}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-600" />
-            <span className="text-lg">
+            <span className="text-lg text-gray-700">
               {new Date(resolvedSlotDate).toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
@@ -83,7 +83,7 @@ export function SlotBooking({ forceShow = false, patientId, slotDate, slotTime }
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-600" />
-            <span className="text-lg">{resolvedSlotTime}</span>
+            <span className="text-lg text-gray-700">{resolvedSlotTime}</span>
           </div>
         </div>
 
