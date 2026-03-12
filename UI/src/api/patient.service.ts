@@ -163,11 +163,17 @@ export const patientService = {
       if (data.mobileNumber) formData.append('MobileNumber', data.mobileNumber);
       if (data.email) formData.append('Email', data.email);
       if (data.aadharNumber) formData.append('AadharNumber', data.aadharNumber);
-      if (data.dob) formData.append('Dob', data.dob);
+      if (data.dob) {
+        // Ensure datetime format for API (backend expects "YYYY-MM-DDT00:00:00")
+        const dobValue = data.dob.includes('T') ? data.dob : `${data.dob}T00:00:00`;
+        formData.append('Dob', dobValue);
+      }
       if (data.registrationStatus) formData.append('RegistrationStatus', data.registrationStatus);
       if (data.kycStatus) formData.append('KYCStatus', data.kycStatus);
       formData.append('Status', String(data.status ?? 1));
       if (data.updatedBy != null) formData.append('UpdatedBy', String(data.updatedBy));
+      if (data.slotDate) formData.append('SlotDate', data.slotDate);
+      if (data.slotTime) formData.append('SlotTime', data.slotTime);
       
       if (kycDocument) {
         console.log('[PatientService] Appending kycDocument to FormData:', kycDocument.name, kycDocument.type, kycDocument.size, 'bytes');

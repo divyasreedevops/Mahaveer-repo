@@ -39,13 +39,15 @@ export function PatientList() {
 
   const handleEdit = (patient: PatientDetails) => {
     setEditingPatient(patient);
+    // Convert ISO datetime (e.g. "1999-08-02T00:00:00") to "YYYY-MM-DD" for date input
+    const dobForInput = patient.dob ? patient.dob.split('T')[0] : '';
     setEditForm({
       fullName: patient.fullName || '',
       mobileNumber: patient.mobileNumber || '',
       email: patient.email || '',
-      dob: patient.dob || '',
-      slotDate: '',
-      slotTime: '',
+      dob: dobForInput,
+      slotDate: patient.slotDate || '',
+      slotTime: patient.slotTime || '',
     });
     setDialogOpen(true);
   };
@@ -61,6 +63,8 @@ export function PatientList() {
         mobileNumber: editForm.mobileNumber,
         email: editForm.email,
         dob: editForm.dob,
+        slotDate: editForm.slotDate || null,
+        slotTime: editForm.slotTime || null,
       };
       const result = await updatePatient(updatedPatient);
       toast.dismiss(toastId);

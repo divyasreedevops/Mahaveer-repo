@@ -264,31 +264,19 @@ export function LandingPage({ onSelectPortal }: LandingPageProps) {
                   </div>
                   <div className="grid grid-cols-[140px_1fr] gap-2">
                     <span className="text-gray-500">Bank Name:</span>
-                    <span>State Bank of India</span>
+                    <span>Mahaveer Coop Urban Bank Ltd</span>
                   </div>
                   <div className="grid grid-cols-[140px_1fr] gap-2">
                     <span className="text-gray-500">Account Number:</span>
-                    <span>1234 5678 9012</span>
+                    <span>004103000000295</span>
                   </div>
                   <div className="grid grid-cols-[140px_1fr] gap-2">
                     <span className="text-gray-500">IFSC Code:</span>
-                    <span>SBIN0004587</span>
+                    <span>HDFC0CMCUBL</span>
                   </div>
                   <div className="grid grid-cols-[140px_1fr] gap-2">
                     <span className="text-gray-500">Branch:</span>
-                    <span>Jayanagar 4th Block, Bengaluru</span>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2">
-                    <span className="text-gray-500">Account Type:</span>
-                    <span>Current Account</span>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2">
-                    <span className="text-gray-500">UPI ID:</span>
-                    <span>donate@mahaveercare</span>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2">
-                    <span className="text-gray-500">SWIFT Code:</span>
-                    <span>SBININBBXXX (For International Donations)</span>
+                    <span>Ameerpet</span>
                   </div>
                 </div>
               </div>

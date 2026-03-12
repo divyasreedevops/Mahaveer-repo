@@ -66,6 +66,8 @@ export interface PatientDetails {
   kycDocumentUrl: string | null;
   incomeLevel: string | null;
   discountPercentage: number | null;
+  slotDate: string | null;
+  slotTime: string | null;
 }
 
 export interface User {
