@@ -146,7 +146,7 @@ export const ApprovalsScreen: React.FC = () => {
 
       // Step 2: Approve KYC with income level and discount
       const kycResult = await patientService.approveKyc({
-        id: selectedPatient.id,
+        ...selectedPatient,
         incomeLevel,
         discountPercentage: Number(discountPercentage) || 0,
       });

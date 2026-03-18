@@ -86,7 +86,7 @@ export interface Patient {
   incomeDocumentUrl: string | null;
   incomeLevel: 'low' | 'medium' | 'high' | null;
   discountPercentage: number;
-  kycStatus: 'pending' | 'approved' | 'rejected';
+  kycStatus: 'pending' | 'approved' | 'rejected' | 'submitted';
   kycRejectionReason: string | null;
   registrationStatus: string;
   registrationDate: string;

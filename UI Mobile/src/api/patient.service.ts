@@ -45,14 +45,17 @@ export const patientService = {
   verifyPatient: async (data: { mobileNumber: string; otp: string; email?: string }): Promise<ApiResponse<{ patientId: string; isValid: boolean }>> => {
     if (__DEV__) console.log('[PatientService] verifyPatient - Verifying patient for mobile:', data.mobileNumber);
     try {
-      const response = await apiClient.post('/Patient/verify', data);
+      const response = await apiClient.post('/Patient/Login', data);
       const resData = response.data;
       // Handle invalid OTP (200 response with isValid: false)
       if (resData?.isValid === false) {
         if (__DEV__) console.log('[PatientService] verifyPatient - Invalid OTP');
         return { success: false, message: resData.message || 'Invalid OTP. Please check and try again.' };
       }
-      if (resData?.patientId) {
+      if (resData?.isAuthenticated && resData?.token) {
+        if (__DEV__) console.log('[PatientService] verifyPatient - Login successful, patientId:', resData.patient?.patientId);
+        return { success: true, data: { patientId: resData.patient?.patientId, isValid: true } };
+      } else if (resData?.patientId) {
         if (__DEV__) console.log('[PatientService] verifyPatient - Verification successful, patientId:', resData.patientId);
         return { success: true, data: resData };
       }
@@ -114,7 +117,7 @@ export const patientService = {
     }
   },
 
-  approveKyc: async (data: ApproveKycRequest): Promise<ApiResponse<any>> => {
+  approveKyc: async (data: PatientDetails): Promise<ApiResponse<any>> => {
     if (__DEV__) console.log('[PatientService] approveKyc - Approving KYC for patient ID:', data.id, 'income:', data.incomeLevel);
     try {
       const response = await apiClient.post('/Patient/ApproveKyc', data);

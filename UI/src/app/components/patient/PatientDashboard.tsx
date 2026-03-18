@@ -4,7 +4,13 @@ import { Invoice } from '@/app/context/AppContextDef';
 import { api } from '@/app/services/api';
 import { toast } from 'sonner';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { PatientDetailsForm } from './PatientDetailsForm';
@@ -12,17 +18,28 @@ import { PrescriptionUploadForm } from './PrescriptionUploadForm';
 import { SlotBookingModal } from './SlotBookingModal';
 import { PatientHistory } from './PatientHistory';
 import { InvoicePaymentModal } from './InvoicePaymentModal';
-import { 
-  LogOut, User, Clock, CheckCircle, XCircle, 
-  Package, Calendar, History, FileText, 
-  Receipt, AlertTriangle, Loader2, Download,
-  ArrowRight, ShieldCheck
+import {
+  LogOut,
+  User,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Package,
+  Calendar,
+  History,
+  FileText,
+  Receipt,
+  AlertTriangle,
+  Loader2,
+  Download,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 export function PatientDashboard() {
   const { currentPatient, logout, patientConfirmCollection, refreshPatientData } = useApp();
   const [isRefreshing, setIsRefreshing] = useState(true);
-  
+
   useEffect(() => {
     setIsRefreshing(true);
     refreshPatientData().finally(() => setIsRefreshing(false));
@@ -35,7 +52,7 @@ export function PatientDashboard() {
     pickupId: string;
     invoice: any;
   } | null>(null);
-  
+
   const [selectedPickup, setSelectedPickup] = useState<{
     prescriptionId: string;
     pickupId: string;
@@ -51,8 +68,32 @@ export function PatientDashboard() {
     );
   }
 
-  // Check KYC status first - if submitted/pending, show approval card regardless of field completion
-  if (currentPatient.kycStatus === 'pending') {
+  // pending + details not yet submitted → show the personal details / KYC form
+  if (currentPatient.kycStatus === 'pending' && !currentPatient.incomeDocumentUrl) {
+    return (
+      <div className="min-h-screen bg-blue-50">
+        <header className="bg-white border-b border-gray-100 shadow-sm">
+          <div className="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <ShieldCheck className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl text-gray-800 font-normal">Mahaveer Pharmacy</h1>
+            </div>
+            <Button variant="outline" onClick={logout} className="border-gray-100 rounded-xl">
+              <LogOut className="w-4 h-4 mr-2" /> Logout
+            </Button>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-12">
+          <PatientDetailsForm />
+        </main>
+      </div>
+    );
+  }
+
+  // pending + details submitted → show review-in-progress card
+  if (currentPatient.kycStatus === 'pending' && currentPatient.incomeDocumentUrl) {
     return (
       <div className="min-h-screen bg-blue-50">
         <header className="bg-white border-b border-gray-100 shadow-sm">
@@ -75,9 +116,12 @@ export function PatientDashboard() {
               <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
                 <Clock className="w-10 h-10 text-blue-600 animate-pulse" />
               </div>
-              <CardTitle className="text-2xl text-gray-800 font-normal">KYC Review in Progress</CardTitle>
+              <CardTitle className="text-2xl text-gray-800 font-normal">
+                KYC Review in Progress
+              </CardTitle>
               <CardDescription className="text-gray-500 font-light text-base">
-                Your documents have been submitted and are being verified by our medical administration team.
+                Your documents have been submitted and are being verified by our medical
+                administration team.
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-8">
@@ -92,7 +136,9 @@ export function PatientDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 font-light">Status</span>
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-normal px-3 py-1 rounded-full">Verification Pending</Badge>
+                  <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-normal px-3 py-1 rounded-full">
+                    Verification Pending
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -125,7 +171,9 @@ export function PatientDashboard() {
               <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
                 <XCircle className="w-10 h-10 text-red-500" />
               </div>
-              <CardTitle className="text-2xl text-gray-800 font-normal">KYC Submission Rejected</CardTitle>
+              <CardTitle className="text-2xl text-gray-800 font-normal">
+                KYC Submission Rejected
+              </CardTitle>
               <CardDescription className="text-gray-500 font-light">
                 We couldn't verify your documents. Please review the reason below and resubmit.
               </CardDescription>
@@ -133,8 +181,9 @@ export function PatientDashboard() {
             <CardContent className="pb-8 space-y-6">
               <div className="bg-red-50/50 border border-red-100 rounded-2xl p-6">
                 <p className="text-sm text-red-800 font-light leading-relaxed">
-                  <strong className="font-normal block mb-1">Feedback from Admin:</strong> 
-                  {currentPatient.kycRejectionReason || 'Documents provided were unclear or incomplete.'}
+                  <strong className="font-normal block mb-1">Feedback from Admin:</strong>
+                  {currentPatient.kycRejectionReason ||
+                    'Documents provided were unclear or incomplete.'}
                 </p>
               </div>
               <Button className="w-full bg-blue-600 hover:bg-blue-700 py-6 rounded-xl font-normal text-lg">
@@ -153,9 +202,15 @@ export function PatientDashboard() {
     return <PatientHistory onBack={() => setShowHistory(false)} />;
   }
 
-  const activePrescriptions = currentPatient.prescriptions.filter(p => p.approvalStatus === 'approved' && p.pickups.some(pk => pk.status !== 'collected'));
-  const pendingPrescription = currentPatient.prescriptions.find(p => p.approvalStatus === 'pending');
-  const rejectedPrescription = currentPatient.prescriptions.find(p => p.approvalStatus === 'rejected');
+  const activePrescriptions = currentPatient.prescriptions.filter(
+    (p) => p.approvalStatus === 'approved' && p.pickups.some((pk) => pk.status !== 'collected')
+  );
+  const pendingPrescription = currentPatient.prescriptions.find(
+    (p) => p.approvalStatus === 'pending'
+  );
+  const rejectedPrescription = currentPatient.prescriptions.find(
+    (p) => p.approvalStatus === 'rejected'
+  );
 
   const handleViewAndPay = async (presc: Prescription) => {
     if (!currentPatient) return;
@@ -165,18 +220,23 @@ export function PatientDashboard() {
 
       // First check if an invoice already exists for this prescription
       try {
-        const existing = await api.invoice.getInvoice(parseInt(currentPatient.id), parseInt(presc.id));
+        const existing = await api.invoice.getInvoice(
+          parseInt(currentPatient.id),
+          parseInt(presc.id)
+        );
         if (existing.invoiceExists && existing.invoice) {
           res = existing.invoice;
         }
-      } catch { /* no existing invoice, will generate */ }
+      } catch {
+        /* no existing invoice, will generate */
+      }
 
       // Generate a new invoice if none exists
       if (!res) {
         res = await api.invoice.generate(
           currentPatient.patientId,
           parseInt(presc.id),
-          parseInt(currentPatient.id),
+          parseInt(currentPatient.id)
         );
       }
 
@@ -209,7 +269,8 @@ export function PatientDashboard() {
   const handleBookSlot = (prescriptionId: string, pickupId: string) => {
     setSelectedPickup({ prescriptionId, pickupId, isReschedule: false });
     setShowSlotModal(true);
-  };  const handleReschedule = (prescriptionId: string, pickupId: string) => {
+  };
+  const handleReschedule = (prescriptionId: string, pickupId: string) => {
     setSelectedPickup({ prescriptionId, pickupId, isReschedule: true });
     setShowSlotModal(true);
   };
@@ -275,7 +336,11 @@ export function PatientDashboard() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   const formatTime = (time: string) => {
@@ -294,15 +359,25 @@ export function PatientDashboard() {
             </div>
             <div>
               <h1 className="text-xl text-gray-800 font-normal leading-tight">Mahaveer Pharmacy</h1>
-              <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest hidden sm:block">Cancer Care Foundation</p>
+              <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest hidden sm:block">
+                Cancer Care Foundation
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <Button variant="ghost" onClick={() => setShowHistory(true)} className="text-gray-600 font-normal rounded-xl hover:bg-gray-100">
+            <Button
+              variant="ghost"
+              onClick={() => setShowHistory(true)}
+              className="text-gray-600 font-normal rounded-xl hover:bg-gray-100"
+            >
               <History className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Order History</span>
             </Button>
-            <Button variant="outline" onClick={logout} className="border-gray-100 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50">
+            <Button
+              variant="outline"
+              onClick={logout}
+              className="border-gray-100 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50"
+            >
               <LogOut className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Logout</span>
             </Button>
@@ -319,21 +394,33 @@ export function PatientDashboard() {
                 <User className="w-10 h-10 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-normal text-gray-800">Namaste, {currentPatient.name.split(' ')[0]}!</h2>
+                <h2 className="text-2xl font-normal text-gray-800">
+                  Namaste, {currentPatient.name.split(' ')[0]}!
+                </h2>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge className="bg-green-50 text-green-700 border-green-200 font-normal rounded-full px-3 py-0.5 text-[10px] uppercase tracking-wider">KYC Verified</Badge>
-                  <span className="text-xs text-gray-400 font-light">ID: {currentPatient.patientId}</span>
+                  <Badge className="bg-green-50 text-green-700 border-green-200 font-normal rounded-full px-3 py-0.5 text-[10px] uppercase tracking-wider">
+                    KYC Verified
+                  </Badge>
+                  <span className="text-xs text-gray-400 font-light">
+                    ID: {currentPatient.patientId}
+                  </span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-8 text-center sm:text-right border-t sm:border-t-0 sm:border-l border-gray-100 pt-6 sm:pt-0 sm:pl-8 w-full sm:w-auto">
               <div>
-                <p className="text-2xl font-normal text-blue-600">{currentPatient.discountPercentage}%</p>
-                <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest">Active Discount</p>
+                <p className="text-2xl font-normal text-blue-600">
+                  {currentPatient.discountPercentage}%
+                </p>
+                <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest">
+                  Active Discount
+                </p>
               </div>
               <div>
                 <p className="text-2xl font-normal text-gray-800">{activePrescriptions.length}</p>
-                <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest">Active Orders</p>
+                <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest">
+                  Active Orders
+                </p>
               </div>
             </div>
           </div>
@@ -341,8 +428,18 @@ export function PatientDashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="flex justify-center">
               <TabsList className="bg-white/50 backdrop-blur-md border border-white/50 shadow-sm p-1.5 h-auto rounded-2xl">
-                <TabsTrigger value="prescriptions" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm py-2.5 px-6 rounded-xl transition-all font-normal">Active Orders</TabsTrigger>
-                <TabsTrigger value="upload" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm py-2.5 px-6 rounded-xl transition-all font-normal">Upload New</TabsTrigger>
+                <TabsTrigger
+                  value="prescriptions"
+                  className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm py-2.5 px-6 rounded-xl transition-all font-normal"
+                >
+                  Active Orders
+                </TabsTrigger>
+                <TabsTrigger
+                  value="upload"
+                  className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm py-2.5 px-6 rounded-xl transition-all font-normal"
+                >
+                  Upload New
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -353,8 +450,15 @@ export function PatientDashboard() {
                     <Package className="w-10 h-10 text-gray-300" />
                   </div>
                   <h3 className="text-xl font-normal text-gray-800">No active orders found</h3>
-                  <p className="text-gray-500 font-light mt-2 max-w-xs mx-auto">Upload a new prescription to start the fulfilment process.</p>
-                  <Button onClick={() => setActiveTab('upload')} className="mt-6 bg-blue-600 hover:bg-blue-700 rounded-xl px-8 font-normal">Upload Now</Button>
+                  <p className="text-gray-500 font-light mt-2 max-w-xs mx-auto">
+                    Upload a new prescription to start the fulfilment process.
+                  </p>
+                  <Button
+                    onClick={() => setActiveTab('upload')}
+                    className="mt-6 bg-blue-600 hover:bg-blue-700 rounded-xl px-8 font-normal"
+                  >
+                    Upload Now
+                  </Button>
                 </div>
               )}
 
@@ -365,134 +469,217 @@ export function PatientDashboard() {
                   if (!pickup) return null;
 
                   return (
-                    <Card key={presc.id} className="border-gray-100 shadow-xl rounded-[2rem] overflow-hidden bg-white group">
-                      <div className={`h-2 w-full ${
-                        pickup.status === 'missing_medicine' ? 'bg-amber-500' :
-                        pickup.status === 'invoice_ready' ? 'bg-blue-600' :
-                        pickup.status === 'slot_booked' ? 'bg-purple-600' :
-                        'bg-blue-600'
-                      }`}></div>
+                    <Card
+                      key={presc.id}
+                      className="border-gray-100 shadow-xl rounded-[2rem] overflow-hidden bg-white group"
+                    >
+                      <div
+                        className={`h-2 w-full ${
+                          pickup.status === 'missing_medicine'
+                            ? 'bg-amber-500'
+                            : pickup.status === 'invoice_ready'
+                              ? 'bg-blue-600'
+                              : pickup.status === 'slot_booked'
+                                ? 'bg-purple-600'
+                                : 'bg-blue-600'
+                        }`}
+                      ></div>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 px-8 pt-8">
                         <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-2xl ${
-                            pickup.status === 'missing_medicine' ? 'bg-amber-50' : 'bg-blue-50'
-                          }`}>
-                            <Package className={`w-6 h-6 ${
-                              pickup.status === 'missing_medicine' ? 'text-amber-600' : 'text-blue-600'
-                            }`} />
+                          <div
+                            className={`p-3 rounded-2xl ${
+                              pickup.status === 'missing_medicine' ? 'bg-amber-50' : 'bg-blue-50'
+                            }`}
+                          >
+                            <Package
+                              className={`w-6 h-6 ${
+                                pickup.status === 'missing_medicine'
+                                  ? 'text-amber-600'
+                                  : 'text-blue-600'
+                              }`}
+                            />
                           </div>
                           <div>
-                            <CardTitle className="text-xl font-normal text-gray-800">Dr. {presc.doctorName}</CardTitle>
-                            <CardDescription className="font-light text-gray-500">{presc.hospitalName}</CardDescription>
+                            <CardTitle className="text-xl font-normal text-gray-800">
+                              Dr. {presc.doctorName}
+                            </CardTitle>
+                            <CardDescription className="font-light text-gray-500">
+                              {presc.hospitalName}
+                            </CardDescription>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-gray-400 font-light uppercase tracking-widest mb-1">Uploaded On</p>
-                          <p className="text-sm font-normal text-gray-800">{formatDate(presc.uploadDate)}</p>
+                          <p className="text-xs text-gray-400 font-light uppercase tracking-widest mb-1">
+                            Uploaded On
+                          </p>
+                          <p className="text-sm font-normal text-gray-800">
+                            {formatDate(presc.uploadDate)}
+                          </p>
                         </div>
                       </CardHeader>
-                      
+
                       <CardContent className="px-8 pb-8 space-y-6">
                         {/* THE FLOW TILES */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* TILE 1: INVOICE */}
-                          <div className={`p-6 rounded-[1.5rem] border-2 transition-all ${
-                            pickup.status === 'invoice_ready' 
-                              ? 'border-blue-500 bg-blue-50/50' 
-                              : presc.approvalStatus === 'approved' && (!presc.processingStatus || presc.processingStatus === 'NOT_PROCESSED')
-                                ? 'border-blue-200 bg-blue-50/30'
-                                : pickup.status === 'missing_medicine'
-                                  ? 'border-gray-100 bg-gray-50 opacity-60'
-                                  : 'border-gray-100 bg-white'
-                          }`}>
+                          <div
+                            className={`p-6 rounded-[1.5rem] border-2 transition-all ${
+                              pickup.status === 'invoice_ready'
+                                ? 'border-blue-500 bg-blue-50/50'
+                                : presc.approvalStatus === 'approved' &&
+                                    (!presc.processingStatus ||
+                                      presc.processingStatus === 'NOT_PROCESSED')
+                                  ? 'border-blue-200 bg-blue-50/30'
+                                  : pickup.status === 'missing_medicine'
+                                    ? 'border-gray-100 bg-gray-50 opacity-60'
+                                    : 'border-gray-100 bg-white'
+                            }`}
+                          >
                             <div className="flex items-start justify-between mb-4">
-                              <div className={`p-2 rounded-xl ${
-                                pickup.status === 'invoice_ready' 
-                                  ? 'bg-blue-600 text-white' 
-                                  : presc.approvalStatus === 'approved' && (!presc.processingStatus || presc.processingStatus === 'NOT_PROCESSED')
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-200 text-gray-400'
-                              }`}>
+                              <div
+                                className={`p-2 rounded-xl ${
+                                  pickup.status === 'invoice_ready'
+                                    ? 'bg-blue-600 text-white'
+                                    : presc.approvalStatus === 'approved' &&
+                                        (!presc.processingStatus ||
+                                          presc.processingStatus === 'NOT_PROCESSED')
+                                      ? 'bg-blue-500 text-white'
+                                      : 'bg-gray-200 text-gray-400'
+                                }`}
+                              >
                                 <Receipt className="w-6 h-6" />
                               </div>
                               {pickup.status === 'invoice_ready' && (
-                                <Badge className="bg-blue-600 text-white border-none font-normal">Ready to Pay</Badge>
+                                <Badge className="bg-blue-600 text-white border-none font-normal">
+                                  Ready to Pay
+                                </Badge>
                               )}
-                              {presc.approvalStatus === 'approved' && (!presc.processingStatus || presc.processingStatus === 'NOT_PROCESSED') && pickup.status !== 'invoice_ready' && (
-                                <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-normal">Generate Invoice</Badge>
-                              )}
+                              {presc.approvalStatus === 'approved' &&
+                                (!presc.processingStatus ||
+                                  presc.processingStatus === 'NOT_PROCESSED') &&
+                                pickup.status !== 'invoice_ready' && (
+                                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-normal">
+                                    Generate Invoice
+                                  </Badge>
+                                )}
                             </div>
-                            <h4 className={`text-lg font-normal ${
-                              pickup.status === 'invoice_ready' 
-                                ? 'text-blue-800' 
-                                : presc.approvalStatus === 'approved' && (!presc.processingStatus || presc.processingStatus === 'NOT_PROCESSED')
-                                  ? 'text-blue-700'
-                                  : 'text-gray-400'
-                            }`}>
-                              {pickup.status === 'missing_medicine' ? 'Invoice on Hold' : 'Your Invoice'}
+                            <h4
+                              className={`text-lg font-normal ${
+                                pickup.status === 'invoice_ready'
+                                  ? 'text-blue-800'
+                                  : presc.approvalStatus === 'approved' &&
+                                      (!presc.processingStatus ||
+                                        presc.processingStatus === 'NOT_PROCESSED')
+                                    ? 'text-blue-700'
+                                    : 'text-gray-400'
+                              }`}
+                            >
+                              {pickup.status === 'missing_medicine'
+                                ? 'Invoice on Hold'
+                                : 'Your Invoice'}
                             </h4>
                             <p className="text-sm font-light text-gray-500 mt-1">
-                              {pickup.status === 'invoice_ready' 
-                                ? `Total: ₹${pickup.invoice?.totalAmount}` 
+                              {pickup.status === 'invoice_ready'
+                                ? `Total: ₹${pickup.invoice?.totalAmount}`
                                 : pickup.status === 'missing_medicine'
                                   ? 'Wait for stock resolution'
-                                  : presc.approvalStatus === 'approved' && (!presc.processingStatus || presc.processingStatus === 'NOT_PROCESSED')
+                                  : presc.approvalStatus === 'approved' &&
+                                      (!presc.processingStatus ||
+                                        presc.processingStatus === 'NOT_PROCESSED')
                                     ? 'Click to generate and view your invoice'
-                                    : 'Billing details available'
-                              }
+                                    : 'Billing details available'}
                             </p>
                             {pickup.status === 'invoice_ready' && (
-                              <Button 
-                                onClick={() => setShowInvoiceModal({ prescriptionId: presc.id, pickupId: pickup.id, invoice: pickup.invoice })}
-                                className="w-full mt-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-normal group/btn"
-                              >
-                                View & Pay <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                              </Button>
-                            )}
-                            {presc.approvalStatus === 'approved' && (!presc.processingStatus || presc.processingStatus === 'NOT_PROCESSED') && pickup.status !== 'invoice_ready' && (
                               <Button
-                                onClick={() => handleViewAndPay(presc)}
-                                disabled={isGeneratingInvoice === presc.id}
+                                onClick={() =>
+                                  setShowInvoiceModal({
+                                    prescriptionId: presc.id,
+                                    pickupId: pickup.id,
+                                    invoice: pickup.invoice,
+                                  })
+                                }
                                 className="w-full mt-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-normal group/btn"
                               >
-                                {isGeneratingInvoice === presc.id
-                                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-                                  : <>View &amp; Pay <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" /></>
-                                }
+                                View & Pay{' '}
+                                <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                               </Button>
                             )}
+                            {presc.approvalStatus === 'approved' &&
+                              (!presc.processingStatus ||
+                                presc.processingStatus === 'NOT_PROCESSED') &&
+                              pickup.status !== 'invoice_ready' && (
+                                <Button
+                                  onClick={() => handleViewAndPay(presc)}
+                                  disabled={isGeneratingInvoice === presc.id}
+                                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-normal group/btn"
+                                >
+                                  {isGeneratingInvoice === presc.id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />{' '}
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      View &amp; Pay{' '}
+                                      <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                                    </>
+                                  )}
+                                </Button>
+                              )}
                           </div>
 
                           {/* TILE 2: MISSING MEDICINE */}
-                          <div className={`p-6 rounded-[1.5rem] border-2 transition-all ${
-                            pickup.status === 'missing_medicine' 
-                              ? 'border-amber-500 bg-amber-50/50' 
-                              : 'border-gray-100 bg-white'
-                          }`}>
+                          <div
+                            className={`p-6 rounded-[1.5rem] border-2 transition-all ${
+                              pickup.status === 'missing_medicine'
+                                ? 'border-amber-500 bg-amber-50/50'
+                                : 'border-gray-100 bg-white'
+                            }`}
+                          >
                             <div className="flex items-start justify-between mb-4">
-                              <div className={`p-2 rounded-xl ${
-                                pickup.status === 'missing_medicine' ? 'bg-amber-500 text-white' : 'bg-green-500 text-white'
-                              }`}>
-                                {pickup.status === 'missing_medicine' ? <AlertTriangle className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />}
+                              <div
+                                className={`p-2 rounded-xl ${
+                                  pickup.status === 'missing_medicine'
+                                    ? 'bg-amber-500 text-white'
+                                    : 'bg-green-500 text-white'
+                                }`}
+                              >
+                                {pickup.status === 'missing_medicine' ? (
+                                  <AlertTriangle className="w-6 h-6" />
+                                ) : (
+                                  <CheckCircle className="w-6 h-6" />
+                                )}
                               </div>
                               {pickup.status === 'missing_medicine' && (
-                                <Badge className="bg-amber-500 text-white border-none font-normal">Action Required</Badge>
+                                <Badge className="bg-amber-500 text-white border-none font-normal">
+                                  Action Required
+                                </Badge>
                               )}
                             </div>
-                            <h4 className={`text-lg font-normal ${pickup.status === 'missing_medicine' ? 'text-amber-800' : 'text-green-700'}`}>
-                              {pickup.status === 'missing_medicine' ? 'Stock Alert' : 'Stock Confirmed'}
+                            <h4
+                              className={`text-lg font-normal ${pickup.status === 'missing_medicine' ? 'text-amber-800' : 'text-green-700'}`}
+                            >
+                              {pickup.status === 'missing_medicine'
+                                ? 'Stock Alert'
+                                : 'Stock Confirmed'}
                             </h4>
                             <div className="mt-1">
                               {pickup.status === 'missing_medicine' ? (
                                 <ul className="text-xs font-light text-amber-700 space-y-1">
-                                  {presc.missingMedicines.map(m => <li key={m} className="flex items-center gap-1">• {m}</li>)}
+                                  {presc.missingMedicines.map((m) => (
+                                    <li key={m} className="flex items-center gap-1">
+                                      • {m}
+                                    </li>
+                                  ))}
                                 </ul>
                               ) : (
-                                <p className="text-sm font-light text-gray-500">All medicines are available</p>
+                                <p className="text-sm font-light text-gray-500">
+                                  All medicines are available
+                                </p>
                               )}
                             </div>
                             {pickup.status === 'missing_medicine' && (
-                              <Button 
+                              <Button
                                 variant="outline"
                                 onClick={() => handleDownloadNotice(presc)}
                                 className="w-full mt-4 border-amber-200 text-amber-700 hover:bg-amber-100 rounded-xl font-normal"
@@ -509,8 +696,12 @@ export function PatientDashboard() {
                             <div className="flex flex-col items-center py-6 text-center space-y-4">
                               <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
                               <div>
-                                <h4 className="text-lg font-normal text-gray-800">Processing Payment...</h4>
-                                <p className="text-sm font-light text-gray-500">Securely confirming your transaction with the bank.</p>
+                                <h4 className="text-lg font-normal text-gray-800">
+                                  Processing Payment...
+                                </h4>
+                                <p className="text-sm font-light text-gray-500">
+                                  Securely confirming your transaction with the bank.
+                                </p>
                               </div>
                             </div>
                           )}
@@ -523,10 +714,12 @@ export function PatientDashboard() {
                                 </div>
                                 <div>
                                   <h4 className="font-normal text-lg">Ready for Slot Booking</h4>
-                                  <p className="text-blue-100 text-sm font-light">Choose your preferred collection time at the pharmacy.</p>
+                                  <p className="text-blue-100 text-sm font-light">
+                                    Choose your preferred collection time at the pharmacy.
+                                  </p>
                                 </div>
                               </div>
-                              <Button 
+                              <Button
                                 onClick={() => handleBookSlot(presc.id, pickup.id)}
                                 className="bg-white text-blue-600 hover:bg-blue-50 w-full sm:w-auto rounded-xl px-8 font-normal h-12"
                               >
@@ -542,22 +735,30 @@ export function PatientDashboard() {
                                   <Calendar className="w-6 h-6" />
                                 </div>
                                 <div>
-                                  <h4 className="font-normal text-lg text-purple-900">Slot Confirmed</h4>
+                                  <h4 className="font-normal text-lg text-purple-900">
+                                    Slot Confirmed
+                                  </h4>
                                   <p className="text-purple-700 text-sm font-light">
                                     {formatDate(pickup.slotDate!)} at {formatTime(pickup.slotTime!)}
                                   </p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <Button 
+                                <Button
                                   variant="ghost"
                                   onClick={() => handleReschedule(presc.id, pickup.id)}
                                   className="text-purple-600 hover:bg-purple-100 rounded-xl px-6 font-normal"
                                 >
                                   Reschedule
                                 </Button>
-                                <Button 
-                                  onClick={() => patientConfirmCollection(currentPatient.patientId, presc.id, pickup.id)}
+                                <Button
+                                  onClick={() =>
+                                    patientConfirmCollection(
+                                      currentPatient.patientId,
+                                      presc.id,
+                                      pickup.id
+                                    )
+                                  }
                                   className="bg-purple-600 hover:bg-purple-700 rounded-xl px-6 font-normal shadow-md"
                                 >
                                   Confirm Collection
@@ -573,8 +774,13 @@ export function PatientDashboard() {
                                   <CheckCircle className="w-6 h-6" />
                                 </div>
                                 <div>
-                                  <h4 className="font-normal text-lg text-green-900">Collection Confirmed ✓</h4>
-                                  <p className="text-green-700 text-sm font-light">Please wait while the pharmacist completes the final verification.</p>
+                                  <h4 className="font-normal text-lg text-green-900">
+                                    Collection Confirmed ✓
+                                  </h4>
+                                  <p className="text-green-700 text-sm font-light">
+                                    Please wait while the pharmacist completes the final
+                                    verification.
+                                  </p>
                                 </div>
                               </div>
                             </div>
@@ -593,24 +799,39 @@ export function PatientDashboard() {
                       </div>
                     </div>
                     <CardHeader className="p-8">
-                      <CardTitle className="text-2xl font-normal text-gray-800">Under Review</CardTitle>
+                      <CardTitle className="text-2xl font-normal text-gray-800">
+                        Under Review
+                      </CardTitle>
                       <CardDescription className="text-gray-500 font-light text-base mt-2">
-                        Our pharmacists are reviewing your prescription (Dr. {pendingPrescription.doctorName}). You'll be notified of the next steps.
+                        Our pharmacists are reviewing your prescription (Dr.{' '}
+                        {pendingPrescription.doctorName}). You'll be notified of the next steps.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="px-8 pb-8">
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 border-t border-gray-100">
                         <div>
-                          <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest mb-1">Upload Date</p>
-                          <p className="text-sm font-normal text-gray-800">{formatDate(pendingPrescription.uploadDate)}</p>
+                          <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest mb-1">
+                            Upload Date
+                          </p>
+                          <p className="text-sm font-normal text-gray-800">
+                            {formatDate(pendingPrescription.uploadDate)}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest mb-1">Doctor</p>
-                          <p className="text-sm font-normal text-gray-800">Dr. {pendingPrescription.doctorName}</p>
+                          <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest mb-1">
+                            Doctor
+                          </p>
+                          <p className="text-sm font-normal text-gray-800">
+                            Dr. {pendingPrescription.doctorName}
+                          </p>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
-                          <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest mb-1">Hospital</p>
-                          <p className="text-sm font-normal text-gray-800">{pendingPrescription.hospitalName}</p>
+                          <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest mb-1">
+                            Hospital
+                          </p>
+                          <p className="text-sm font-normal text-gray-800">
+                            {pendingPrescription.hospitalName}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -632,7 +853,9 @@ export function PatientDashboard() {
                         Waiting for Approval
                       </span>
                     </div>
-                    <CardTitle className="text-2xl text-gray-800 font-normal">One at a Time</CardTitle>
+                    <CardTitle className="text-2xl text-gray-800 font-normal">
+                      One at a Time
+                    </CardTitle>
                     <CardDescription className="text-gray-500 font-light">
                       To ensure accuracy, we process one prescription review at a time.
                     </CardDescription>
@@ -640,8 +863,8 @@ export function PatientDashboard() {
                   <CardContent className="pb-8 space-y-6">
                     <div className="bg-gray-50 rounded-2xl p-6">
                       <p className="text-sm text-gray-600 font-light leading-relaxed">
-                        Your current upload (<strong>Dr. {pendingPrescription.doctorName}</strong>) is in queue. 
-                        Once approved, this section will be unlocked for new uploads.
+                        Your current upload (<strong>Dr. {pendingPrescription.doctorName}</strong>)
+                        is in queue. Once approved, this section will be unlocked for new uploads.
                       </p>
                     </div>
                   </CardContent>
@@ -655,7 +878,9 @@ export function PatientDashboard() {
                       </div>
                       <div>
                         <h4 className="font-normal text-red-900">Upload Corrected Prescription</h4>
-                        <p className="text-xs text-red-700 font-light mt-1">{rejectedPrescription.rejectionReason}</p>
+                        <p className="text-xs text-red-700 font-light mt-1">
+                          {rejectedPrescription.rejectionReason}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -684,7 +909,10 @@ export function PatientDashboard() {
           prescriptionId={selectedPickup.prescriptionId}
           pickupId={selectedPickup.pickupId}
           isReschedule={selectedPickup.isReschedule}
-          expiryDate={currentPatient.prescriptions.find(p => p.id === selectedPickup.prescriptionId)?.expiryDate || null}
+          expiryDate={
+            currentPatient.prescriptions.find((p) => p.id === selectedPickup.prescriptionId)
+              ?.expiryDate || null
+          }
           onClose={() => {
             setShowSlotModal(false);
             setSelectedPickup(null);

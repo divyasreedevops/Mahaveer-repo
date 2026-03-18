@@ -9,9 +9,9 @@ export const authService = {
       const response = await apiClient.post('/Login/admin', credentials);
       const data = response.data;
       if (data?.isAuthenticated || data === true) {
-        await AsyncStorage.setItem('auth_token', 'authenticated');
-        await AsyncStorage.setItem('username', credentials.username);
-        await AsyncStorage.setItem('user_role', 'admin');
+        await AsyncStorage.setItem('auth_token', data.token || 'authenticated');
+        await AsyncStorage.setItem('username', data.user?.username || credentials.username);
+        await AsyncStorage.setItem('user_role', data.user?.role || 'admin');
         if (__DEV__) console.log('[AuthService] loginAdmin - Admin login successful');
         return { success: true, data: { isAuthenticated: true } };
       }
@@ -44,14 +44,19 @@ export const authService = {
   verifyOtp: async (mobileNumber: string, otp: string): Promise<ApiResponse<{ patientId: string; isValid: boolean }>> => {
     if (__DEV__) console.log('[AuthService] verifyOtp - Verifying OTP for:', mobileNumber);
     try {
-      const response = await apiClient.post('/Patient/verify', { mobileNumber, otp });
+      const response = await apiClient.post('/Patient/Login', { mobileNumber, otp });
       const data = response.data;
       // Handle invalid OTP (200 response with isValid: false)
       if (data?.isValid === false) {
         if (__DEV__) console.log('[AuthService] verifyOtp - Invalid OTP');
         return { success: false, message: data.message || 'Invalid OTP. Please check and try again.' };
       }
-      if (data?.patientId) {
+      if (data?.isAuthenticated && data?.token) {
+        await AsyncStorage.setItem('auth_token', data.token);
+        await AsyncStorage.setItem('user_role', 'patient');
+        if (__DEV__) console.log('[AuthService] verifyOtp - Existing patient logged in, patientId:', data.patient?.patientId);
+        return { success: true, data: { patientId: data.patient?.patientId, isValid: true } };
+      } else if (data?.patientId) {
         await AsyncStorage.setItem('auth_token', 'patient_authenticated');
         await AsyncStorage.setItem('user_role', 'patient');
         if (__DEV__) console.log('[AuthService] verifyOtp - OTP verified successfully, patientId:', data.patientId);
