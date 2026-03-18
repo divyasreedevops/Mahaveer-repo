@@ -7,12 +7,11 @@ import { Upload, FileText, CheckCircle, X } from 'lucide-react';
 import { PatientData } from '../PatientFlow';
 
 interface Props {
+  patientData: PatientData;
   updateData: (data: Partial<PatientData>) => void;
-  onUploaded?: () => void;
-  embedded?: boolean;
 }
 
-export function PrescriptionUpload({ updateData, onUploaded, embedded = false }: Props) {
+export function PrescriptionUpload({ patientData, updateData }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
@@ -41,20 +40,12 @@ export function PrescriptionUpload({ updateData, onUploaded, embedded = false }:
       updateData({ prescriptionUrl });
       toast.success('Prescription uploaded successfully!');
       setUploading(false);
-      if (onUploaded) {
-        onUploaded();
-      } else {
-        navigate('/patient/invoice');
-      }
+      navigate('/patient/invoice');
     }, 2000);
   };
 
-  const containerClassName = embedded
-    ? 'w-full'
-    : 'min-h-screen flex items-center justify-center p-4';
-
   return (
-    <div className={containerClassName}>
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">

@@ -1,46 +1,46 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { patientService } from '@/api';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/app/components/ui/input-otp';
 import { toast } from 'sonner';
-import { ArrowLeft, Smartphone, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/app/components/ui/alert';
+import { ArrowLeft, Smartphone, Shield } from 'lucide-react';
+import { PatientData } from '../PatientFlow';
+import { Link } from 'react-router-dom';
 
-export function PatientRegistration() {
+interface Props {
+  patientData: PatientData;
+  updateData: (data: Partial<PatientData>) => void;
+}
+
+export function PatientRegistration({ patientData, updateData }: Props) {
+  const [mobile, setMobile] = useState(patientData.mobile || '');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
-  const [mobile, setMobile] = useState((location.state as any)?.mobile || '');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleRegister = async () => {
+  const handleSendOTP = () => {
     if (mobile.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
+      toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
+    setOtpSent(true);
+    toast.success('OTP sent to ' + mobile);
+  };
 
-    setIsLoading(true);
-    setError('');
-
-    try {
-      // Register patient with mobile number
-      const result = await patientService.registerPatient(mobile);
-      
-      if (result.success) {
-        toast.success('Registration submitted successfully! Please wait for admin approval.');
-        // Redirect to login after a delay
-        setTimeout(() => {
-          navigate('/patient/login');
-        }, 2000);
-      } else {
-        setError(result.error || 'Failed to register. Please try again.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to register. Please try again.');
-    } finally {
-      setIsLoading(false);
+  const handleVerifyOTP = () => {
+    if (otp.length !== 6) {
+      toast.error('Please enter complete 6-digit OTP');
+      return;
+    }
+    // Mock OTP verification - in real app, this would verify with backend
+    if (otp === '123456' || otp.length === 6) {
+      updateData({ mobile });
+      toast.success('Mobile number verified successfully!');
+      navigate('/patient/details');
+    } else {
+      toast.error('Invalid OTP');
     }
   };
 
@@ -59,46 +59,80 @@ export function PatientRegistration() {
             </div>
             <CardTitle>Patient Registration</CardTitle>
             <CardDescription>
-              Register your mobile number to get started
+              Verify your mobile number to continue
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm">Mobile Number</label>
-              <Input
-                type="tel"
-                placeholder="Enter 10-digit mobile number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                maxLength={10}
-                disabled={isLoading}
-              />
-              <p className="text-xs text-gray-500">
-                Your registration will be pending until approved by admin
-              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  maxLength={10}
+                  disabled={otpSent}
+                />
+                {!otpSent && (
+                  <Button onClick={handleSendOTP}>Send OTP</Button>
+                )}
+              </div>
             </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+            {otpSent && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-2">
+                  <label className="text-sm">Enter OTP</label>
+                  <div className="flex justify-center">
+                    <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                  <p className="text-xs text-center text-gray-500">
+                    For demo, use: 123456
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                  <Shield className="w-4 h-4" />
+                  <span>Your data is secure and encrypted</span>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtp('');
+                    }}
+                  >
+                    Change Number
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-green-600 hover:bg-green-700" 
+                    onClick={handleVerifyOTP}
+                  >
+                    Verify OTP
+                  </Button>
+                </div>
+
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-700 w-full"
+                  onClick={handleSendOTP}
+                >
+                  Resend OTP
+                </button>
+              </div>
             )}
-
-            <Button 
-              className="w-full bg-green-600 hover:bg-green-700" 
-              onClick={handleRegister}
-              disabled={isLoading || mobile.length !== 10}
-            >
-              {isLoading ? 'Registering...' : 'Register'}
-            </Button>
-
-            <div className="text-center text-sm text-gray-600">
-              Already registered?{' '}
-              <Link to="/patient/login" className="text-blue-600 hover:underline">
-                Login here
-              </Link>
-            </div>
           </CardContent>
         </Card>
       </div>

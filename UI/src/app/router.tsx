@@ -8,6 +8,7 @@ import { LandingPage } from './components/LandingPage';
 import { PatientLogin } from './components/patient/PatientLogin';
 import { PatientDetailsForm } from './components/patient/PatientDetailsForm';
 import { PatientDashboard } from './components/patient/PatientDashboard';
+import { PatientHeader } from './components/patient/PatientHeader';
 
 // Admin pages
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -40,7 +41,14 @@ export const router = createBrowserRouter([
       },
       {
         path: 'details',
-        element: <PatientDetailsForm />,
+        element: (
+          <div className="min-h-screen bg-blue-50">
+            <PatientHeader showLogout={true} />
+            <main className="container mx-auto px-4 py-12 flex justify-center">
+              <PatientDetailsForm />
+            </main>
+          </div>
+        ),
       },
       {
         path: 'dashboard',

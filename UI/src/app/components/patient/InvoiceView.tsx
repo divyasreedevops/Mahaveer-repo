@@ -11,77 +11,53 @@ import { PatientData } from '../PatientFlow';
 interface Props {
   patientData: PatientData;
   updateData: (data: Partial<PatientData>) => void;
-  onProceed?: () => void;
-  embedded?: boolean;
 }
 
 interface InvoiceItem {
-  id: string;
-  medicine: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
+  medicineName: string;
+  inventoryId: number | null;
+  mrp: number;
+  discount: number;
+  finalPrice: number;
+  isAvailable: boolean;
 }
 
-export function InvoiceView({ patientData, updateData, onProceed, embedded = false }: Props) {
+export function InvoiceView({ patientData, updateData }: Props) {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState<{
     invoiceNumber: string;
     date: string;
     items: InvoiceItem[];
     subtotal: number;
-    tax: number;
-    discount: number;
-    grandTotal: number;
-    discountPercentage: number;
+    totalDiscount: number;
+    totalAmount: number;
   } | null>(null);
-  const [discountPercentage, setDiscountPercentage] = useState<number>(90);
-
-  // Load discount percentage from stored patient data
-  useEffect(() => {
-    const storedData = localStorage.getItem('patient_data');
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        if (parsedData.discountPercentage != null) {
-          setDiscountPercentage(parsedData.discountPercentage);
-        }
-      } catch (e) {
-        console.error('Failed to parse patient data', e);
-      }
-    }
-  }, []);
 
   useEffect(() => {
-    // Only generate invoice once when component mounts or discount changes
     // Generate mock invoice from prescription
     const mockItems: InvoiceItem[] = [
-      { id: '1', medicine: 'Paracetamol 500mg', quantity: 10, unitPrice: 5, total: 50 },
-      { id: '2', medicine: 'Amoxicillin 250mg', quantity: 15, unitPrice: 12, total: 180 },
-      { id: '3', medicine: 'Vitamin D3', quantity: 30, unitPrice: 8, total: 240 },
-      { id: '4', medicine: 'Cough Syrup', quantity: 1, unitPrice: 85, total: 85 },
+      { medicineName: 'Paracetamol 500mg', inventoryId: 1, mrp: 50.00, discount: 25.00, finalPrice: 25.00, isAvailable: true },
+      { medicineName: 'Amoxicillin 250mg', inventoryId: 2, mrp: 180.00, discount: 90.00, finalPrice: 90.00, isAvailable: true },
+      { medicineName: 'Vitamin D3', inventoryId: 3, mrp: 240.00, discount: 120.00, finalPrice: 120.00, isAvailable: true },
+      { medicineName: 'Cough Syrup', inventoryId: 4, mrp: 85.00, discount: 42.50, finalPrice: 42.50, isAvailable: true },
     ];
 
-    const subtotal = mockItems.reduce((acc, item) => acc + item.total, 0);
-    const tax = subtotal * 0.05; // 5% tax
-    const discount = (subtotal + tax) * (discountPercentage / 100); // Use patient's subsidy percentage
-    const grandTotal = (subtotal + tax) - discount;
+    const subtotal = mockItems.reduce((acc, item) => acc + item.mrp, 0);
+    const totalDiscount = mockItems.reduce((acc, item) => acc + item.discount, 0);
+    const totalAmount = mockItems.reduce((acc, item) => acc + item.finalPrice, 0);
 
     const newInvoice = {
       invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
       date: new Date().toLocaleDateString(),
       items: mockItems,
       subtotal,
-      tax,
-      discount,
-      grandTotal,
-      discountPercentage,
+      totalDiscount,
+      totalAmount,
     };
 
     setInvoice(newInvoice);
     updateData({ invoice: newInvoice });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [discountPercentage]);
+  }, []);
 
   const handleProceedToPayment = () => {
     toast.success('Proceeding to payment...');
@@ -89,11 +65,7 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
     setTimeout(() => {
       updateData({ paymentComplete: true, orderId: `ORD-${Date.now().toString().slice(-8)}` });
       toast.success('Payment completed successfully!');
-      if (onProceed) {
-        onProceed();
-      } else {
-        navigate('/patient/slot-booking');
-      }
+      navigate('/patient/slot-booking');
     }, 1500);
   };
 
@@ -105,12 +77,8 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
     );
   }
 
-  const containerClassName = embedded
-    ? 'w-full'
-    : 'min-h-screen p-4 md:p-8';
-
   return (
-    <div className={containerClassName}>
+    <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader className="text-center">
@@ -149,18 +117,21 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
                 <TableHeader>
                   <TableRow>
                     <TableHead>Medicine</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">MRP</TableHead>
+                    <TableHead className="text-right">Discount</TableHead>
+                    <TableHead className="text-right">Final Price</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {invoice.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.medicine}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">₹{item.unitPrice}</TableCell>
-                      <TableCell className="text-right">₹{item.total}</TableCell>
+                  {invoice.items.map((item, idx) => (
+                    <TableRow key={idx} className={!item.isAvailable ? 'opacity-50' : ''}>
+                      <TableCell>
+                        {item.medicineName}
+                        {!item.isAvailable && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
+                      </TableCell>
+                      <TableCell className="text-right">₹{item.mrp.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">₹{item.discount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">₹{item.finalPrice.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -175,24 +146,20 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
                 <span>Subtotal:</span>
                 <span>₹{invoice.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Taxes (5%):</span>
-                <span>₹{invoice.tax.toFixed(2)}</span>
-              </div>
               <div className="flex justify-between text-sm text-green-600">
-                <span>Discount ({invoice.discountPercentage}%):</span>
-                <span>- ₹{invoice.discount.toFixed(2)}</span>
+                <span>Discount:</span>
+                <span>- ₹{invoice.totalDiscount.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg">
-                <strong>Grand Total:</strong>
-                <strong className="text-green-600">₹{invoice.grandTotal.toFixed(2)}</strong>
+                <strong>Total Amount:</strong>
+                <strong className="text-green-600">₹{invoice.totalAmount.toFixed(2)}</strong>
               </div>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-green-900">
-                <strong>Great News!</strong> You're saving ₹{invoice.discount.toFixed(2)} with {invoice.discountPercentage}% discount.
+                <strong>Great News!</strong> You're saving ₹{invoice.totalDiscount.toFixed(2)} with our subsidy program.
               </p>
             </div>
 
@@ -201,7 +168,7 @@ export function InvoiceView({ patientData, updateData, onProceed, embedded = fal
               onClick={handleProceedToPayment}
             >
               <CreditCard className="w-4 h-4 mr-2" />
-              Proceed to Payment (₹{invoice.grandTotal.toFixed(2)})
+              Proceed to Payment (₹{invoice.totalAmount.toFixed(2)})
             </Button>
           </CardContent>
         </Card>

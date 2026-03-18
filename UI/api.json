@@ -1,775 +1,1263 @@
 {
-  "apiDocumentation": {
-    "version": "1.0",
-    "baseUrl": "http://16.112.72.213:5000",
-    "description": "PharmaCare Backend API Documentation with example payloads, responses, and parameters",
-    "endpoints": {
-      "authentication": {
-        "adminLogin": {
-          "method": "POST",
-          "path": "/Login/admin",
-          "description": "Authenticate admin user",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "username": "admin_user",
-            "password": "securePassword123"
-          },
-          "responses": {
-            "200_success": {
-              "message": "Login successful",
-              "isAuthenticated": true
-            },
-            "400_badRequest": {
-              "message": "Username and password are required"
-            },
-            "401_unauthorized": {
-              "message": "Invalid credentials",
-              "isAuthenticated": false
-            },
-            "500_serverError": {
-              "message": "An error occurred during login"
-            }
-          }
-        },
-        "logout": {
-          "method": "POST",
-          "path": "/Login/logout",
-          "description": "Logout current user",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": null,
-          "responses": {
-            "200_success": {
-              "message": "Logout successful"
-            }
-          }
-        }
-      },
-      "patients": {
-        "getPatientsByStatus": {
-          "method": "GET",
-          "path": "/Patient/status/{status}",
-          "description": "Retrieve patients filtered by registration status",
-          "pathParameters": {
-            "status": {
-              "type": "string",
-              "required": true,
-              "description": "Registration status filter",
-              "examples": ["Pending", "Approved", "Rejected"]
-            }
-          },
-          "responses": {
-            "200_success": [
-              {
-                "id": 1,
-                "patientId": "PC001234",
-                "fullName": "John Doe",
-                "mobileNumber": "9876543210",
-                "email": "john.doe@example.com",
-                "aadharNumber": "123456789012",
-                "dob": "1990-05-15T00:00:00",
-                "registrationDate": "2026-02-01T10:30:00",
-                "registrationStatus": "Pending",
-                "status": 1,
-                "createdBy": 1,
-                "createdDate": "2026-02-01T10:30:00",
-                "updatedDate": "2026-02-01T10:30:00",
-                "updatedBy": 1
-              },
-              {
-                "id": 2,
-                "patientId": "PC001235",
-                "fullName": "Jane Smith",
-                "mobileNumber": "9876543211",
-                "email": "jane.smith@example.com",
-                "aadharNumber": "123456789013",
-                "dob": "1985-08-22T00:00:00",
-                "registrationDate": "2026-02-02T14:20:00",
-                "registrationStatus": "Approved",
-                "status": 1,
-                "createdBy": 1,
-                "createdDate": "2026-02-02T14:20:00",
-                "updatedDate": "2026-02-03T09:15:00",
-                "updatedBy": 1
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PharmaCare API",
+    "description": "PharmaCare Prescription Management System",
+    "version": "v1"
+  },
+  "paths": {
+    "/Admin/ApproveKyc": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patientdetails"
               }
-            ],
-            "400_badRequest": {
-              "message": "status cannot be empty"
             },
-            "500_serverError": {
-              "message": "An error occurred while fetching patients"
-            }
-          }
-        },
-        "updatePatient": {
-          "method": "POST",
-          "path": "/Patient/Update",
-          "description": "Update patient information",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "id": 1,
-            "patientId": "PC001234",
-            "fullName": "John Doe Updated",
-            "mobileNumber": "9876543210",
-            "email": "john.updated@example.com",
-            "aadharNumber": "123456789012",
-            "dob": "1990-05-15T00:00:00",
-            "registrationDate": "2026-02-01T10:30:00",
-            "registrationStatus": "Approved",
-            "status": 1,
-            "createdBy": 1,
-            "createdDate": "2026-02-01T10:30:00",
-            "updatedDate": "2026-02-05T15:30:00",
-            "updatedBy": 1
-          },
-          "responses": {
-            "200_success": {
-              "message": "Patient updated successfully"
-            },
-            "400_badRequest": {
-              "message": "Name, mobile number, and Aadhar number are required"
-            },
-            "404_notFound": {
-              "message": "Patient not found"
-            },
-            "409_conflict": {
-              "message": "Aadhaar number already exists"
-            },
-            "500_serverError": {
-              "message": "An error occurred while saving patient"
-            }
-          }
-        },
-        "registerPatient": {
-          "method": "POST",
-          "path": "/Patient/Register",
-          "description": "Send OTP for patient registration",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "mobileNumber": "9876543210"
-          },
-          "responses": {
-            "200_success": {
-              "message": "OTP sent successfully",
-              "mobileNumber": "9876543210",
-              "otp": "123456"
-            },
-            "400_badRequest": {
-              "message": "Mobile number is required"
-            }
-          }
-        },
-        "verifyOtp": {
-          "method": "POST",
-          "path": "/Patient/verify",
-          "description": "Verify OTP and complete patient registration or login",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "mobileNumber": "9876543210",
-            "email": "patient@example.com",
-            "otp": "123456"
-          },
-          "responses": {
-            "200_newRegistration": {
-              "message": "Patient registered successfully",
-              "patientId": "PC001236"
-            },
-            "200_existingLogin": {
-              "message": "Login Successful",
-              "patientId": "PC001236"
-            },
-            "200_invalidOtp": {
-              "message": "Invalid OTP",
-              "isValid": false
-            },
-            "400_badRequest": {
-              "message": "Mobile number and OTP are required"
-            },
-            "500_serverError": {
-              "message": "Something went wrong"
-            }
-          }
-        },
-        "updateRegistrationStatus": {
-          "method": "POST",
-          "path": "/Patient/UpdateStatus",
-          "description": "Update patient registration status",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "id": 1,
-            "patientId": "PC001234",
-            "registrationStatus": "Approved",
-            "fullName": "John Doe",
-            "mobileNumber": "9876543210",
-            "email": "john.doe@example.com",
-            "aadharNumber": "123456789012"
-          },
-          "responses": {
-            "200_success": {
-              "message": "Registration status updated successfully"
-            },
-            "400_badRequest": {
-              "message": "Id, Registration status, and PatientId are required"
-            },
-            "400_invalidStatus": {
-              "message": "Invalid registration status"
-            },
-            "404_notFound": {
-              "message": "Patient not found"
-            },
-            "500_serverError": {
-              "message": "An error occurred while saving patient"
-            }
-          }
-        },
-        "getPatientByMobileNumber": {
-          "method": "GET",
-          "path": "/Patient/GetPatientByMobileNumber",
-          "description": "Retrieve patient details by mobile number",
-          "queryParameters": {
-            "mobile": {
-              "type": "string",
-              "required": true,
-              "description": "Patient mobile number",
-              "example": "9876543210"
-            }
-          },
-          "exampleUrl": "/Patient/GetPatientByMobileNumber?mobile=9876543210",
-          "responses": {
-            "200_success": {
-              "id": 1,
-              "patientId": "PC001234",
-              "fullName": "John Doe",
-              "mobileNumber": "9876543210",
-              "email": "john.doe@example.com",
-              "aadharNumber": "123456789012",
-              "dob": "1990-05-15T00:00:00",
-              "registrationDate": "2026-02-01T10:30:00",
-              "registrationStatus": "Approved",
-              "status": 1,
-              "createdBy": 1,
-              "createdDate": "2026-02-01T10:30:00",
-              "updatedDate": "2026-02-01T10:30:00",
-              "updatedBy": 1
-            },
-            "400_badRequest": {
-              "message": "Mobile number is required"
-            },
-            "404_notFound": {
-              "message": "Patient not found"
-            }
-          }
-        }
-      },
-      "inventory": {
-        "getInventoryList": {
-          "method": "GET",
-          "path": "/Inventory/GetInventoryList",
-          "description": "Retrieve all inventory items",
-          "responses": {
-            "200_success": [
-              {
-                "id": 1,
-                "name": "Paracetamol",
-                "type": "Tablet",
-                "disease": "Fever",
-                "dosageValue": 500.0,
-                "dosageUnits": "mg",
-                "quantityValue": 10,
-                "quantityUnits": "tablets",
-                "mrp": 50.00,
-                "discount": 5.00,
-                "finalPrice": 45.00,
-                "status": 1,
-                "createdBy": 1,
-                "createdDate": "2026-01-15T08:00:00",
-                "updatedDate": "2026-02-01T10:00:00",
-                "updatedBy": 1
-              },
-              {
-                "id": 2,
-                "name": "Amoxicillin",
-                "type": "Capsule",
-                "disease": "Bacterial Infection",
-                "dosageValue": 250.0,
-                "dosageUnits": "mg",
-                "quantityValue": 15,
-                "quantityUnits": "capsules",
-                "mrp": 120.00,
-                "discount": 10.00,
-                "finalPrice": 108.00,
-                "status": 1,
-                "createdBy": 1,
-                "createdDate": "2026-01-20T09:30:00",
-                "updatedDate": "2026-02-01T10:00:00",
-                "updatedBy": 1
-              },
-              {
-                "id": 3,
-                "name": "Ibuprofen",
-                "type": "Syrup",
-                "disease": "Pain/Inflammation",
-                "dosageValue": 100.0,
-                "dosageUnits": "mg/5ml",
-                "quantityValue": 100,
-                "quantityUnits": "ml",
-                "mrp": 85.00,
-                "discount": 7.50,
-                "finalPrice": 77.50,
-                "status": 1,
-                "createdBy": 1,
-                "createdDate": "2026-01-25T11:00:00",
-                "updatedDate": "2026-02-01T10:00:00",
-                "updatedBy": 1
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patientdetails"
               }
-            ],
-            "500_serverError": {
-              "message": "An error occurred while fetching inventory data"
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patientdetails"
+              }
             }
           }
         },
-        "saveInventoryItems": {
-          "method": "POST",
-          "path": "/Inventory/save",
-          "description": "Save or update inventory items in bulk",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": [
-            {
-              "id": 0,
-              "name": "Cetirizine",
-              "type": "Tablet",
-              "disease": "Allergy",
-              "dosageValue": 10.0,
-              "dosageUnits": "mg",
-              "quantityValue": 10,
-              "quantityUnits": "tablets",
-              "mrp": 40.00,
-              "discount": 4.00,
-              "finalPrice": 36.00,
-              "status": 1,
-              "createdBy": 1,
-              "createdDate": "2026-02-05T10:00:00",
-              "updatedDate": "2026-02-05T10:00:00",
-              "updatedBy": 1
-            },
-            {
-              "id": 1,
-              "name": "Paracetamol",
-              "type": "Tablet",
-              "disease": "Fever",
-              "dosageValue": 650.0,
-              "dosageUnits": "mg",
-              "quantityValue": 15,
-              "quantityUnits": "tablets",
-              "mrp": 60.00,
-              "discount": 6.00,
-              "finalPrice": 54.00,
-              "status": 1,
-              "createdBy": 1,
-              "createdDate": "2026-01-15T08:00:00",
-              "updatedDate": "2026-02-05T10:00:00",
-              "updatedBy": 1
-            }
-          ],
-          "responses": {
-            "200_success": {
-              "message": "Items saved successfully",
-              "count": 2
-            },
-            "400_badRequest": {
-              "message": "At least one item is required"
-            },
-            "500_serverError": {
-              "message": "An error occurred while saving items"
-            }
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
-      },
-      "users": {
-        "createUser": {
-          "method": "POST",
-          "path": "/User/CreateUser",
-          "description": "Create a new user account",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "id": 0,
-            "firstname": "John",
-            "lastname": "Smith",
-            "username": "john.smith",
-            "password": "SecurePassword123!",
-            "email": "john.smith@pharmacare.com",
-            "role": "Admin",
-            "status": 1
-          },
-          "responses": {
-            "200_success": {
-              "message": "User created successfully"
+      }
+    },
+    "/Admin/UpdateRegistrationStatus": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patientdetails"
+              }
             },
-            "400_badRequest": {
-              "message": "Username and password are required"
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patientdetails"
+              }
             },
-            "500_serverError": {
-              "message": "An error occurred while creating user"
-            }
-          }
-        }
-      },
-      "otp": {
-        "sendOtp": {
-          "method": "POST",
-          "path": "/Otp/send",
-          "description": "Send OTP to mobile number",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "mobileNumber": "9876543210"
-          },
-          "responses": {
-            "200_success": {
-              "message": "OTP sent successfully",
-              "mobileNumber": "9876543210"
-            },
-            "400_badRequest": {
-              "message": "Mobile number is required"
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patientdetails"
+              }
             }
           }
         },
-        "verifyOtp": {
-          "method": "POST",
-          "path": "/Otp/verify",
-          "description": "Verify OTP for mobile number",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "requestBody": {
-            "mobileNumber": "9876543210",
-            "otp": "123456"
-          },
-          "responses": {
-            "200_success": {
-              "message": "OTP verified successfully",
-              "isValid": true
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/AppointmentSlot/GetAvailableSlots": {
+      "get": {
+        "tags": [
+          "AppointmentSlot"
+        ],
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/AppointmentSlot/BookSlot": {
+      "post": {
+        "tags": [
+          "AppointmentSlot"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookAppointmentRequest"
+              }
             },
-            "200_invalidOtp": {
-              "message": "Invalid OTP",
-              "isValid": false
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookAppointmentRequest"
+              }
             },
-            "400_badRequest": {
-              "message": "Mobile number and OTP are required"
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookAppointmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Common/GetIncomeLevels": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Inventory/GetInventoryList": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Inventory/save": {
+      "post": {
+        "tags": [
+          "Inventory"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InventoryItem"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InventoryItem"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InventoryItem"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Inventory": {
+      "delete": {
+        "tags": [
+          "Inventory"
+        ],
+        "parameters": [
+          {
+            "name": "inventoryId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Invoice/GenerateInvoice": {
+      "post": {
+        "tags": [
+          "Invoice"
+        ],
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prescriptionId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MedicineInfo"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MedicineInfo"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MedicineInfo"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Invoice/UpdateInvoiceStatus": {
+      "post": {
+        "tags": [
+          "Invoice"
+        ],
+        "parameters": [
+          {
+            "name": "InvoiceNumber",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PrescriptionId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Login/admin": {
+      "post": {
+        "tags": [
+          "Login"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Login/logout": {
+      "post": {
+        "tags": [
+          "Login"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Patient/GetPatientsByStatus": {
+      "get": {
+        "tags": [
+          "Patient"
+        ],
+        "parameters": [
+          {
+            "name": "regstatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kycstatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Patient/SavePatientInfo": {
+      "post": {
+        "tags": [
+          "Patient"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "Id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "PatientId": {
+                    "type": "string"
+                  },
+                  "FullName": {
+                    "type": "string"
+                  },
+                  "MobileNumber": {
+                    "type": "string"
+                  },
+                  "Email": {
+                    "type": "string"
+                  },
+                  "AadharNumber": {
+                    "type": "string"
+                  },
+                  "Dob": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "RegistrationDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "RegistrationStatus": {
+                    "type": "string"
+                  },
+                  "KYCStatus": {
+                    "type": "string"
+                  },
+                  "Status": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "CreatedBy": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "CreatedDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "UpdatedDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "UpdatedBy": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "FirstLogin": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "KycDocumentUrl": {
+                    "type": "string"
+                  },
+                  "IncomeLevel": {
+                    "type": "string"
+                  },
+                  "DiscountPercentage": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "kycDocument": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "Id": {
+                  "style": "form"
+                },
+                "PatientId": {
+                  "style": "form"
+                },
+                "FullName": {
+                  "style": "form"
+                },
+                "MobileNumber": {
+                  "style": "form"
+                },
+                "Email": {
+                  "style": "form"
+                },
+                "AadharNumber": {
+                  "style": "form"
+                },
+                "Dob": {
+                  "style": "form"
+                },
+                "RegistrationDate": {
+                  "style": "form"
+                },
+                "RegistrationStatus": {
+                  "style": "form"
+                },
+                "KYCStatus": {
+                  "style": "form"
+                },
+                "Status": {
+                  "style": "form"
+                },
+                "CreatedBy": {
+                  "style": "form"
+                },
+                "CreatedDate": {
+                  "style": "form"
+                },
+                "UpdatedDate": {
+                  "style": "form"
+                },
+                "UpdatedBy": {
+                  "style": "form"
+                },
+                "FirstLogin": {
+                  "style": "form"
+                },
+                "KycDocumentUrl": {
+                  "style": "form"
+                },
+                "IncomeLevel": {
+                  "style": "form"
+                },
+                "DiscountPercentage": {
+                  "style": "form"
+                },
+                "kycDocument": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Patient/Register": {
+      "post": {
+        "tags": [
+          "Patient"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Patient/Login": {
+      "post": {
+        "tags": [
+          "Patient"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patient"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patient"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Patient"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Patient/GetPatientByMobileNumber": {
+      "get": {
+        "tags": [
+          "Patient"
+        ],
+        "parameters": [
+          {
+            "name": "mobile",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Prescription/uploadPrescription": {
+      "post": {
+        "tags": [
+          "Prescription"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "File",
+                  "Id",
+                  "PatientId"
+                ],
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "PatientId": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "File": {
+                  "style": "form"
+                },
+                "PatientId": {
+                  "style": "form"
+                },
+                "Id": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
             }
           }
         }
       }
     },
-    "commonErrorResponses": {
-      "400_badRequest": {
-        "description": "Invalid request parameters or missing required fields",
-        "example": {
-          "message": "Validation error description"
-        }
-      },
-      "401_unauthorized": {
-        "description": "Authentication failed or credentials invalid",
-        "example": {
-          "message": "Invalid credentials"
-        }
-      },
-      "404_notFound": {
-        "description": "Requested resource not found",
-        "example": {
-          "message": "Resource not found"
-        }
-      },
-      "409_conflict": {
-        "description": "Conflict with existing resource",
-        "example": {
-          "message": "Resource already exists"
-        }
-      },
-      "500_serverError": {
-        "description": "Internal server error",
-        "example": {
-          "message": "An error occurred while processing the request"
+    "/api/Prescription/ApprovePrescription": {
+      "post": {
+        "tags": [
+          "Prescription"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionApprovalRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionApprovalRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionApprovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
         }
       }
     },
-    "dataModels": {
-      "Patient": {
-        "description": "Basic patient registration model",
-        "properties": {
-          "mobileNumber": {
-            "type": "string",
-            "required": true,
-            "example": "9876543210"
-          },
-          "email": {
-            "type": "string",
-            "required": false,
-            "example": "patient@example.com"
-          },
-          "otp": {
-            "type": "string",
-            "required": true,
-            "example": "123456"
+    "/api/Prescription/RejectPrescription": {
+      "post": {
+        "tags": [
+          "Prescription"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionRejectionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionRejectionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionRejectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
-      },
-      "PatientDetails": {
-        "description": "Detailed patient information",
+      }
+    },
+    "/api/Prescription/GetPrescriptionsByStatus": {
+      "get": {
+        "tags": [
+          "Prescription"
+        ],
+        "parameters": [
+          {
+            "name": "PrescriptionStatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/User/CreateUser": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/WeatherForecast": {
+      "get": {
+        "tags": [
+          "WeatherForecast"
+        ],
+        "operationId": "GetWeatherForecast",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecast"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecast"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecast"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BookAppointmentRequest": {
+        "type": "object",
         "properties": {
-          "id": {
-            "type": "long",
-            "description": "Database identifier"
-          },
           "patientId": {
             "type": "string",
-            "description": "Unique patient identifier",
-            "example": "PC001234"
+            "nullable": true
           },
-          "fullName": {
+          "prescriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "slotDate": {
             "type": "string",
-            "required": true,
-            "example": "John Doe"
+            "format": "date-time"
           },
-          "mobileNumber": {
+          "slotTime": {
             "type": "string",
-            "example": "9876543210"
-          },
-          "email": {
-            "type": "string",
-            "example": "john.doe@example.com"
-          },
-          "aadharNumber": {
-            "type": "string",
-            "required": true,
-            "example": "123456789012"
-          },
-          "dob": {
-            "type": "datetime",
-            "example": "1990-05-15T00:00:00"
-          },
-          "registrationDate": {
-            "type": "datetime",
-            "example": "2026-02-01T10:30:00"
-          },
-          "registrationStatus": {
-            "type": "string",
-            "enum": ["Pending", "Approved", "Rejected"],
-            "example": "Pending"
-          },
-          "status": {
-            "type": "int",
-            "description": "Active status (0=Inactive, 1=Active)"
-          },
-          "createdBy": {
-            "type": "long",
-            "description": "User ID who created the record"
-          },
-          "createdDate": {
-            "type": "datetime"
-          },
-          "updatedDate": {
-            "type": "datetime"
-          },
-          "updatedBy": {
-            "type": "long",
-            "description": "User ID who last updated the record"
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "InventoryItem": {
-        "description": "Medicine/product inventory item",
+        "type": "object",
         "properties": {
           "id": {
-            "type": "long",
-            "description": "Database identifier (0 for new items)"
+            "type": "integer",
+            "format": "int64"
           },
           "name": {
             "type": "string",
-            "required": true,
-            "example": "Paracetamol"
+            "nullable": true
           },
           "type": {
             "type": "string",
-            "required": true,
-            "example": "Tablet",
-            "options": ["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops"]
+            "nullable": true
           },
           "disease": {
             "type": "string",
-            "example": "Fever"
+            "nullable": true
           },
           "dosageValue": {
-            "type": "decimal",
-            "example": 500.0
+            "type": "number",
+            "format": "double"
           },
           "dosageUnits": {
             "type": "string",
-            "example": "mg"
+            "nullable": true
           },
           "quantityValue": {
-            "type": "int",
-            "example": 10
+            "type": "integer",
+            "format": "int32"
           },
           "quantityUnits": {
             "type": "string",
-            "example": "tablets"
+            "nullable": true
           },
           "mrp": {
-            "type": "decimal",
-            "description": "Maximum Retail Price",
-            "example": 50.00
+            "type": "number",
+            "format": "double"
           },
           "discount": {
-            "type": "decimal",
-            "example": 5.00
+            "type": "number",
+            "format": "double"
           },
           "finalPrice": {
-            "type": "decimal",
-            "description": "Price after discount",
-            "example": 45.00
+            "type": "number",
+            "format": "double"
           },
           "status": {
-            "type": "int",
-            "description": "Active status (0=Inactive, 1=Active)"
+            "type": "integer",
+            "format": "int32"
           },
           "createdBy": {
-            "type": "long"
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
           },
           "createdDate": {
-            "type": "datetime"
+            "type": "string",
+            "format": "date-time"
           },
           "updatedDate": {
-            "type": "datetime"
+            "type": "string",
+            "format": "date-time"
           },
           "updatedBy": {
-            "type": "long"
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "User": {
-        "description": "System user account",
+      "LoginRequest": {
+        "type": "object",
         "properties": {
-          "id": {
-            "type": "int",
-            "description": "Database identifier (0 for new users)"
-          },
-          "firstname": {
-            "type": "string",
-            "required": true,
-            "example": "John"
-          },
-          "lastname": {
-            "type": "string",
-            "required": true,
-            "example": "Smith"
-          },
           "username": {
             "type": "string",
-            "required": true,
-            "example": "john.smith"
+            "nullable": true
           },
           "password": {
             "type": "string",
-            "required": true,
-            "example": "SecurePassword123!"
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MedicineInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "dosage": {
+            "type": "string",
+            "nullable": true
+          },
+          "frequency": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OtpRequest": {
+        "type": "object",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Patient": {
+        "type": "object",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
           },
           "email": {
             "type": "string",
-            "required": true,
-            "example": "john.smith@pharmacare.com"
-          },
-          "role": {
-            "type": "string",
-            "example": "Admin",
-            "options": ["Admin", "Staff", "Manager"]
-          },
-          "status": {
-            "type": "int",
-            "enum": [0, 1],
-            "description": "0=Inactive, 1=Active"
-          }
-        }
-      },
-      "LoginRequest": {
-        "description": "Admin login credentials",
-        "properties": {
-          "username": {
-            "type": "string",
-            "required": true,
-            "example": "admin_user"
-          },
-          "password": {
-            "type": "string",
-            "required": true,
-            "example": "securePassword123"
-          }
-        }
-      },
-      "OtpRequest": {
-        "description": "Request OTP for mobile number",
-        "properties": {
-          "mobileNumber": {
-            "type": "string",
-            "required": true,
-            "example": "9876543210"
-          }
-        }
-      },
-      "VerifyOtpRequest": {
-        "description": "Verify OTP for mobile number",
-        "properties": {
-          "mobileNumber": {
-            "type": "string",
-            "required": true,
-            "example": "9876543210"
+            "nullable": true
           },
           "otp": {
             "type": "string",
-            "required": true,
-            "example": "123456"
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
+      },
+      "Patientdetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "patientId": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "aadharNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "dob": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "registrationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "registrationStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "kycStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdBy": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "firstLogin": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kycDocumentUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "incomeLevel": {
+            "type": "string",
+            "nullable": true
+          },
+          "discountPercentage": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrescriptionApprovalRequest": {
+        "type": "object",
+        "properties": {
+          "prescriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "remarks": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrescriptionRejectionRequest": {
+        "type": "object",
+        "properties": {
+          "prescriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rejectedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrescriptionResponse": {
+        "type": "object",
+        "properties": {
+          "medicines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstname": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastname": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeatherForecast": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "temperatureC": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "temperatureF": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       }
     },
-    "enumerations": {
-      "PatientRegistrationStatus": {
-        "Pending": 0,
-        "Approved": 1,
-        "Rejected": -1
-      },
-      "UserStatus": {
-        "Inactive": 0,
-        "Active": 1
-      },
-      "GeneralStatus": {
-        "Inactive": 0,
-        "Active": 1
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Enter 'Bearer' [space] and then your valid JWT token",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
-    },
-    "notes": {
-      "authentication": "Currently, endpoints do not require authentication tokens. This should be implemented in production.",
-      "dateTimeFormat": "All datetime fields use ISO 8601 format (YYYY-MM-DDTHH:mm:ss)",
-      "mobileNumberFormat": "10-digit Indian mobile number format",
-      "aadharFormat": "12-digit Aadhaar number",
-      "otpGeneration": "OTP is a 6-digit random number (100000-999999)",
-      "errorHandling": "All endpoints return appropriate HTTP status codes with descriptive error messages"
     }
-  }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
 }

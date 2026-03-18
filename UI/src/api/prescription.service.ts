@@ -1,5 +1,12 @@
 import apiClient from './client';
-import { ApiResponse } from '@/types';
+import type {
+  ApiResponse,
+  PrescriptionApprovalRequest,
+  PrescriptionRejectionRequest,
+  PrescriptionResponse,
+  PrescriptionDetails,
+  MedicineInfo,
+} from '@/types';
 
 /**
  * Medicine extracted from prescription
@@ -11,13 +18,10 @@ export interface MedicineFromPrescription {
 }
 
 /**
- * Upload prescription response from AWS Textract/ComprehendMedical
+ * Upload prescription response
  */
 export interface UploadPrescriptionResponse {
-  medicines: MedicineFromPrescription[];
-  doctorName: string;
-  hospitalName: string;
-  prescriptionKey: string;
+  medicines: string[] | null;
 }
 
 /**
@@ -47,26 +51,25 @@ export interface GenerateInvoiceResponse {
 }
 
 /**
- * Prescription service - Handle prescription upload and invoice generation
+ * Prescription service - Handle prescription upload, approvals, and invoices
  */
 export const prescriptionService = {
   /**
-   * Upload prescription file and extract medicine details
-   * Uses AWS Textract and ComprehendMedical to extract data
+   * Upload prescription file
    */
   async uploadPrescription(
     file: File,
     patientId: string,
-    id: number
-  ): Promise<ApiResponse<UploadPrescriptionResponse>> {
+    id: string
+  ): Promise<ApiResponse<PrescriptionResponse>> {
     try {
       const formData = new FormData();
       formData.append('File', file);
       formData.append('PatientId', patientId);
-      formData.append('Id', id.toString());
+      formData.append('Id', id);
 
-      const response = await apiClient.post<UploadPrescriptionResponse>(
-        '/api/prescription/uploadPrescription',
+      const response = await apiClient.post<PrescriptionResponse>(
+        '/api/Prescription/uploadPrescription',
         formData,
         {
           headers: {
@@ -81,38 +84,88 @@ export const prescriptionService = {
         message: 'Prescription uploaded successfully',
       };
     } catch (error: any) {
-      console.error('Prescription upload error:', error);
-      const errorMessage = 
-        error.response?.data?.error || 
-        error.response?.data?.message ||
-        error.message || 
-        'Failed to upload prescription. Please check your connection and try again.';
       return {
         success: false,
-        error: errorMessage,
+        error: error.message || 'Failed to upload prescription',
       };
     }
   },
 
   /**
-   * Generate invoice from extracted medicines
-   * Matches medicines with inventory and calculates pricing
+   * Approve prescription
+   */
+  async approvePrescription(data: PrescriptionApprovalRequest): Promise<ApiResponse<void>> {
+    try {
+      const response = await apiClient.post('/api/Prescription/ApprovePrescription', data);
+      return {
+        success: true,
+        message: response.data.message || 'Prescription approved successfully',
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to approve prescription',
+      };
+    }
+  },
+
+  /**
+   * Reject prescription
+   */
+  async rejectPrescription(data: PrescriptionRejectionRequest): Promise<ApiResponse<void>> {
+    try {
+      const response = await apiClient.post('/api/Prescription/RejectPrescription', data);
+      return {
+        success: true,
+        message: response.data.message || 'Prescription rejected successfully',
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to reject prescription',
+      };
+    }
+  },
+
+  /**
+   * Get prescriptions by status
+   */
+  async getPrescriptionsByStatus(status: string): Promise<ApiResponse<PrescriptionDetails[]>> {
+    try {
+      const response = await apiClient.get<PrescriptionDetails[]>(
+        '/api/Prescription/GetPrescriptionsByStatus',
+        { params: { PrescriptionStatus: status } }
+      );
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch prescriptions',
+      };
+    }
+  },
+
+  /**
+   * Generate invoice from medicines
    */
   async generateInvoice(
-    medicines: MedicineFromPrescription[],
     patientId: string,
-    prescriptionKey: string,
-    id: number
-  ): Promise<ApiResponse<GenerateInvoiceResponse>> {
+    prescriptionId: number,
+    pId: number,
+    medicines: MedicineInfo[]
+  ): Promise<ApiResponse<any>> {
     try {
-      const response = await apiClient.post<GenerateInvoiceResponse>(
-        '/api/Prescription/GenerateInvoice',
+      const response = await apiClient.post(
+        '/api/Invoice/GenerateInvoice',
         medicines,
         {
           params: {
             patientId,
-            prescriptionkey: prescriptionKey,
-            Id: id
+            prescriptionId,
+            pId
           }
         }
       );
@@ -123,78 +176,36 @@ export const prescriptionService = {
         message: 'Invoice generated successfully',
       };
     } catch (error: any) {
-      console.error('Invoice generation error:', error);
-      const errorMessage = 
-        error.response?.data?.error || 
-        error.response?.data?.message ||
-        error.message || 
-        'Failed to generate invoice. Please try again.';
       return {
         success: false,
-        error: errorMessage,
+        error: error.message || 'Failed to generate invoice',
       };
     }
   },
 
   /**
-   * Combined upload and generate invoice
-   * First uploads prescription, then generates invoice with extracted medicines
+   * Update invoice status
    */
-  async uploadAndGenerateInvoice(
-    file: File,
-    patientId: string,
-    id: number
-  ): Promise<ApiResponse<{
-    prescription: UploadPrescriptionResponse;
-    invoice: GenerateInvoiceResponse;
-  }>> {
+  async updateInvoiceStatus(invoiceNumber: string, prescriptionId: number): Promise<ApiResponse<void>> {
     try {
-      // Step 1: Upload prescription and extract medicines
-      const uploadResult = await this.uploadPrescription(file, patientId, id);
-      
-      if (!uploadResult.success || !uploadResult.data) {
-        return {
-          success: false,
-          error: uploadResult.error || 'Failed to upload prescription',
-        };
-      }
-
-      // Step 2: Generate invoice with extracted medicines
-      const invoiceResult = await this.generateInvoice(
-        uploadResult.data.medicines,
-        patientId,
-        uploadResult.data.prescriptionKey,
-        id
-      );
-
-      if (!invoiceResult.success || !invoiceResult.data) {
-        return {
-          success: false,
-          error: invoiceResult.error || 'Failed to generate invoice',
-        };
-      }
-
+      const response = await apiClient.post('/api/Invoice/UpdateInvoiceStatus', null, {
+        params: {
+          InvoiceNumber: invoiceNumber,
+          PrescriptionId: prescriptionId
+        }
+      });
       return {
         success: true,
-        data: {
-          prescription: uploadResult.data,
-          invoice: invoiceResult.data,
-        },
-        message: 'Prescription uploaded and invoice generated successfully',
+        message: response.data.message || 'Invoice status updated successfully',
       };
     } catch (error: any) {
-      console.error('Upload and generate invoice error:', error);
-      const errorMessage = 
-        error.response?.data?.error || 
-        error.response?.data?.message ||
-        error.message || 
-        'Failed to process prescription. Please try again.';
       return {
         success: false,
-        error: errorMessage,
+        error: error.message || 'Failed to update invoice status',
       };
     }
   },
 };
 
 export default prescriptionService;
+

@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { toast } from 'sonner';
 import { User, Calendar } from 'lucide-react';
 import { PatientData } from '../PatientFlow';
-import { PatientHeader } from './PatientHeader';
 
 interface Props {
   patientData: PatientData;
@@ -34,10 +33,8 @@ export function PatientDetails({ patientData, updateData }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PatientHeader showLogout={true} />
-      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
-        <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
             <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -85,7 +82,6 @@ export function PatientDetails({ patientData, updateData }: Props) {
             </Button>
           </CardContent>
         </Card>
-      </div>
       </div>
     </div>
   );

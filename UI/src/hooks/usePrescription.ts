@@ -3,9 +3,8 @@ import { prescriptionService } from '@/api';
 import type {
   UploadPrescriptionResponse,
   GenerateInvoiceResponse,
-  MedicineFromPrescription,
 } from '@/api/prescription.service';
-import type { ApiResponse } from '@/types';
+import type { ApiResponse, MedicineInfo } from '@/types';
 
 interface UsePrescriptionReturn {
   uploadPrescription: (
@@ -14,10 +13,10 @@ interface UsePrescriptionReturn {
     id: number
   ) => Promise<ApiResponse<UploadPrescriptionResponse>>;
   generateInvoice: (
-    medicines: MedicineFromPrescription[],
     patientId: string,
-    prescriptionKey: string,
-    id: number
+    prescriptionId: number,
+    pId: number,
+    medicines: MedicineInfo[]
   ) => Promise<ApiResponse<GenerateInvoiceResponse>>;
   uploadAndGenerateInvoice: (
     file: File,
@@ -26,7 +25,7 @@ interface UsePrescriptionReturn {
   ) => Promise<
     ApiResponse<{
       prescription: UploadPrescriptionResponse;
-      invoice: GenerateInvoiceResponse;
+      invoice: GenerateInvoiceResponse | null;
     }>
   >;
   isLoading: boolean;
@@ -50,22 +49,15 @@ export function usePrescription(): UsePrescriptionReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await prescriptionService.uploadPrescription(
-          file,
-          patientId,
-          id
-        );
+        const result = await prescriptionService.uploadPrescription(file, patientId, id.toString());
         if (!result.success) {
           setError(result.error || 'Failed to upload prescription');
         }
-        return result;
+        return result as ApiResponse<UploadPrescriptionResponse>;
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to upload prescription';
         setError(errorMessage);
-        return {
-          success: false,
-          error: errorMessage,
-        };
+        return { success: false, error: errorMessage };
       } finally {
         setIsLoading(false);
       }
@@ -75,31 +67,23 @@ export function usePrescription(): UsePrescriptionReturn {
 
   const generateInvoice = useCallback(
     async (
-      medicines: MedicineFromPrescription[],
       patientId: string,
-      prescriptionKey: string,
-      id: number
+      prescriptionId: number,
+      pId: number,
+      medicines: MedicineInfo[]
     ): Promise<ApiResponse<GenerateInvoiceResponse>> => {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await prescriptionService.generateInvoice(
-          medicines,
-          patientId,
-          prescriptionKey,
-          id
-        );
+        const result = await prescriptionService.generateInvoice(patientId, prescriptionId, pId, medicines);
         if (!result.success) {
           setError(result.error || 'Failed to generate invoice');
         }
-        return result;
+        return result as ApiResponse<GenerateInvoiceResponse>;
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to generate invoice';
         setError(errorMessage);
-        return {
-          success: false,
-          error: errorMessage,
-        };
+        return { success: false, error: errorMessage };
       } finally {
         setIsLoading(false);
       }
@@ -112,34 +96,34 @@ export function usePrescription(): UsePrescriptionReturn {
       file: File,
       patientId: string,
       id: number
-    ): Promise<
-      ApiResponse<{
-        prescription: UploadPrescriptionResponse;
-        invoice: GenerateInvoiceResponse;
-      }>
-    > => {
+    ): Promise<ApiResponse<{ prescription: UploadPrescriptionResponse; invoice: GenerateInvoiceResponse | null }>> => {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await prescriptionService.uploadAndGenerateInvoice(
-          file,
-          patientId,
-          id
-        );
-        if (!result.success) {
-          setError(
-            result.error || 'Failed to upload prescription and generate invoice'
-          );
+        // Step 1: Upload prescription
+        const uploadResult = await prescriptionService.uploadPrescription(file, patientId, id.toString());
+        if (!uploadResult.success) {
+          setError(uploadResult.error || 'Failed to upload prescription');
+          return { success: false, error: uploadResult.error };
         }
-        return result;
-      } catch (err: any) {
-        const errorMessage =
-          err.message || 'Failed to upload prescription and generate invoice';
-        setError(errorMessage);
+        // Step 2: Generate invoice with extracted medicines (if any)
+        const medicines: MedicineInfo[] = (uploadResult.data?.medicines ?? []).map((name: string) => ({
+          name,
+          dosage: null,
+          frequency: null,
+        }));
+        const invoiceResult = await prescriptionService.generateInvoice(patientId, id, id, medicines);
         return {
-          success: false,
-          error: errorMessage,
+          success: true,
+          data: {
+            prescription: uploadResult.data as UploadPrescriptionResponse,
+            invoice: invoiceResult.success ? invoiceResult.data as GenerateInvoiceResponse : null,
+          },
         };
+      } catch (err: any) {
+        const errorMessage = err.message || 'Failed to upload prescription and generate invoice';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
       } finally {
         setIsLoading(false);
       }
@@ -160,3 +144,4 @@ export function usePrescription(): UsePrescriptionReturn {
     clearError,
   };
 }
+

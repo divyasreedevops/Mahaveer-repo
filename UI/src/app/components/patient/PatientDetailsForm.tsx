@@ -1,58 +1,18 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '@/app/context/AppContext';
-import { useToast } from '@/lib';
-import { patientService } from '@/api';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { User, AlertCircle, CreditCard, FileText } from 'lucide-react';
-import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import type { PatientDetails } from '@/types';
+import { User, FileText, AlertCircle, CreditCard } from 'lucide-react';
 
 export function PatientDetailsForm() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { currentPatient, updatePatientKYC, checkAadharEligibility } = useApp();
-  const toast = useToast();
-
-  // Get patient data from route state (for first login) or context
-  // On page refresh, location.state is lost — restore from localStorage
-  const routePatient = (location.state as any)?.patient as PatientDetails | undefined;
-  const routeIsFirstLogin = (location.state as any)?.isFirstLogin === true;
-  const routeMobile = (location.state as any)?.mobile;
-  const routeEmail = (location.state as any)?.email;
-
-  // Restore from localStorage when route state is empty (page refresh)
-  const storedPatientRaw = localStorage.getItem('patient_data');
-  const storedPatient: PatientDetails | null = storedPatientRaw ? (() => { try { return JSON.parse(storedPatientRaw); } catch { return null; } })() : null;
-  const storedTempRaw = localStorage.getItem('patient_temp');
-  const storedTemp: { mobile?: string; email?: string; patientId?: string } | null = storedTempRaw ? (() => { try { return JSON.parse(storedTempRaw); } catch { return null; } })() : null;
-
-  const statePatient = routePatient || storedPatient || null;
-  const isFirstLogin = routeIsFirstLogin || localStorage.getItem('patient_is_first_login') === 'true';
-  const mobile = routeMobile || statePatient?.mobileNumber || storedTemp?.mobile || localStorage.getItem('patient_mobile') || '';
-  const stateEmail = routeEmail || statePatient?.email || storedTemp?.email || '';
-
-  const [name, setName] = useState(statePatient?.fullName || currentPatient?.name || '');
-  const [dateOfBirth, setDateOfBirth] = useState(statePatient?.dob || currentPatient?.dateOfBirth || '');
-  const [aadhaarNumber, setAadhaarNumber] = useState(
-    statePatient?.aadharNumber || currentPatient?.aadhaarNumber || currentPatient?.aadhar || ''
-  );
-  const [email] = useState(statePatient?.email || stateEmail || '');
+  const { currentPatient, submitKYC, isLoading } = useApp();
+  const [name, setName] = useState(currentPatient?.name || '');
+  const [dateOfBirth, setDateOfBirth] = useState(currentPatient?.dateOfBirth || '');
+  const [aadhaarNumber, setAadhaarNumber] = useState(currentPatient?.aadhaarNumber || '');
   const [incomeDocument, setIncomeDocument] = useState<File | null>(null);
   const [error, setError] = useState('');
-  const [aadharError, setAadharError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleAadhaarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Format Aadhaar with spaces (XXXX XXXX XXXX)
-    const value = e.target.value.replace(/\D/g, '').slice(0, 12);
-    const formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-    setAadhaarNumber(formatted);
-    setAadharError('');
-  };
 
   const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -61,181 +21,37 @@ export function PatientDetailsForm() {
     }
   };
 
+  const handleAadhaarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Format Aadhaar number with spaces (XXXX XXXX XXXX)
+    const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+    const formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+    setAadhaarNumber(formatted);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const rawAadhar = aadhaarNumber.replace(/\s/g, '');
-
-    // --- Validation ---
-    if (!name || !dateOfBirth) {
-      setError('Please fill in all required fields');
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (!rawAadhar || rawAadhar.length !== 12) {
-      setAadharError('Please enter a valid 12-digit Aadhaar number');
-      toast.error('Please enter a valid 12-digit Aadhaar number');
-      return;
-    }
-
-    // Validate Aadhar eligibility (duplicate / 30-day check)
-    if (checkAadharEligibility) {
-      const eligibility = checkAadharEligibility(rawAadhar);
-      if (!eligibility.eligible) {
-        setAadharError(eligibility.message);
-        toast.error(eligibility.message);
-        return;
-      }
-    }
-
-    // Income document required if not already uploaded
-    if (!currentPatient?.incomeDocumentUrl && !statePatient?.kycDocumentUrl && !incomeDocument) {
-      setError('Please upload your income document (bank statement) for KYC verification');
-      toast.error('Please upload your income document for KYC verification');
-      return;
-    }
-
-    setIsLoading(true);
-    const toastId = toast.loading('Saving patient details...');
-
+    if (!name.trim()) { setError('Please enter your full name'); return; }
+    if (!dateOfBirth) { setError('Please enter your date of birth'); return; }
+    if (aadhaarNumber.replace(/\s/g, '').length !== 12) { setError('Please enter a valid 12-digit Aadhaar number'); return; }
+    if (!incomeDocument) { setError('Please upload an income document'); return; }
     try {
-      // --- Resolve the patient record to update ---
-      let basePatient: PatientDetails | null = statePatient || null;
-      console.log('[PatientDetailsForm] Initial basePatient from state:', basePatient);
-      console.log('[PatientDetailsForm] Mobile number:', mobile);
-
-      if (!basePatient && mobile) {
-        // Fetch existing patient from API by mobile number
-        console.log('[PatientDetailsForm] Fetching patient from API...');
-        const fetchResult = await patientService.getPatientByMobileNumber(mobile);
-        console.log('[PatientDetailsForm] Fetch result:', fetchResult);
-        
-        if (fetchResult.success && fetchResult.data) {
-          basePatient = fetchResult.data;
-          console.log('[PatientDetailsForm] Patient found via API:', basePatient);
-        } else {
-          console.warn('[PatientDetailsForm] Failed to fetch patient:', fetchResult.error);
-        }
-      }
-
-      if (!basePatient) {
-        // Fall back to locally-stored patient data from localStorage
-        console.log('[PatientDetailsForm] Trying localStorage fallback...');
-        const storedData = localStorage.getItem('patient_data');
-        if (storedData) {
-          try {
-            basePatient = JSON.parse(storedData) as PatientDetails;
-            console.log('[PatientDetailsForm] Patient loaded from localStorage:', basePatient);
-          } catch (parseError) {
-            console.error('[PatientDetailsForm] Failed to parse stored patient data:', parseError);
-          }
-        }
-      }
-
-      // Last resort: build a minimal patient from patient_temp
-      if (!basePatient && storedTemp?.patientId) {
-        console.log('[PatientDetailsForm] Building minimal patient from patient_temp:', storedTemp);
-        basePatient = {
-          id: 0,
-          patientId: storedTemp.patientId,
-          fullName: name,
-          mobileNumber: storedTemp.mobile || mobile || '',
-          email: storedTemp.email || email || '',
-          aadharNumber: rawAadhar,
-          dob: dateOfBirth,
-          registrationDate: new Date().toISOString(),
-          registrationStatus: 'Pending',
-          kycStatus: 'Pending Approval',
-          status: 1,
-          createdBy: 0,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString(),
-          updatedBy: null,
-          firstLogin: 1,
-          kycDocumentUrl: null,
-        } as PatientDetails;
-      }
-
-      if (!basePatient) {
-        console.error('[PatientDetailsForm] No patient record found - showing error to user');
-        toast.dismiss(toastId);
-        toast.error('Could not find patient record. Please try logging in again.');
-        setError('Could not find patient record. Please try logging in again.');
-        return;
-      }
-
-      // --- Build the updated patient payload ---
-      const updatedPatient: PatientDetails = {
-        ...basePatient,
-        fullName: name,
-        dob: dateOfBirth,
-        aadharNumber: rawAadhar,
-        email: email || basePatient.email,
-        kycStatus: 'Pending Approval',
-        registrationStatus: 'Pending',
-        firstLogin: 0,
-        status: basePatient.status ?? 1,
-        // Set kycDocumentUrl to indicate document was uploaded (actual S3 URL handled by backend)
-        kycDocumentUrl: incomeDocument ? 'uploaded' : basePatient.kycDocumentUrl,
-      };
-      
-      console.log('[PatientDetailsForm] Updated patient payload:', updatedPatient);
-      console.log('[PatientDetailsForm] Income document to upload:', incomeDocument);
-
-      // --- Call API with KYC document ---
-      const result = await patientService.updatePatient(updatedPatient, incomeDocument || undefined);
-      console.log('[PatientDetailsForm] Update result:', result);
-      toast.dismiss(toastId);
-
-      if (result.success) {
-        // Persist to localStorage
-        localStorage.setItem('patient_data', JSON.stringify(updatedPatient));
-        if (mobile || updatedPatient.mobileNumber) {
-          localStorage.setItem('patient_mobile', mobile || updatedPatient.mobileNumber || '');
-        }
-        localStorage.setItem('auth_token', updatedPatient.patientId || 'patient');
-        localStorage.removeItem('patient_is_first_login'); // Profile submitted
-        localStorage.removeItem('patient_temp'); // No longer needed
-
-        // Update local context state as well (for in-memory dashboard rendering)
-        updatePatientKYC(name, dateOfBirth, aadhaarNumber, incomeDocument || undefined);
-
-        toast.success('Details saved successfully! Waiting for admin approval.');
-        setError('');
-        // Navigate to dashboard which will show pending approval screen
-        navigate('/patient/dashboard', { replace: true, state: { forceRefresh: true } });
-      } else {
-        toast.error(result.error || 'Failed to save patient details');
-        setError(result.error || 'Failed to save patient details');
-      }
-    } catch (err: any) {
-      toast.dismiss(toastId);
-      console.error('Error saving patient details:', err);
-      const msg = err?.message || 'Failed to save patient details';
-      toast.error(msg);
-      setError(msg);
-    } finally {
-      setIsLoading(false);
+      setError('');
+      await submitKYC(name.trim(), dateOfBirth, aadhaarNumber, incomeDocument);
+    } catch {
+      // error shown via toast from context
     }
   };
 
-  // Hide form if all KYC fields are already filled (non-first-login)
-  if (
-    !isFirstLogin &&
-    currentPatient?.name &&
-    currentPatient?.dateOfBirth &&
-    (currentPatient?.aadhaarNumber || currentPatient?.aadhar) &&
-    (currentPatient?.incomeDocumentUrl || statePatient?.kycDocumentUrl)
-  ) {
-    return null;
+  if (currentPatient?.name && currentPatient?.dateOfBirth && currentPatient?.aadhaarNumber && currentPatient?.incomeDocumentUrl) {
+    return null; // Details already filled
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto border-gray-100 shadow-lg rounded-2xl">
+    <Card className="w-full max-w-lg mx-auto border-gray-100 shadow-lg rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
           <User className="w-6 h-6 text-blue-600" />
-          <CardTitle className="text-gray-800 font-normal">Personal Details &amp; KYC</CardTitle>
+          <CardTitle className="text-gray-800 font-normal">Personal Details & KYC</CardTitle>
         </div>
         <CardDescription className="text-gray-500 font-light">
           Please provide your details and upload income document for verification
@@ -251,7 +67,7 @@ export function PatientDetailsForm() {
               placeholder="Enter your full name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
+              className="border-gray-100"
             />
           </div>
           <div className="space-y-2">
@@ -262,11 +78,11 @@ export function PatientDetailsForm() {
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
-              disabled={isLoading}
+              className="border-gray-100"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="aadhaar" className="flex items-center gap-2">
+            <Label htmlFor="aadhaar" className="flex items-center gap-2 text-gray-700 font-normal">
               <CreditCard className="w-4 h-4" />
               Aadhaar Number
             </Label>
@@ -277,17 +93,11 @@ export function PatientDetailsForm() {
               value={aadhaarNumber}
               onChange={handleAadhaarChange}
               maxLength={14}
-              disabled={isLoading}
+              className="border-gray-100"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 font-light">
               Enter your 12-digit Aadhaar number for identity verification
             </p>
-            {aadharError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{aadharError}</AlertDescription>
-              </Alert>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="kyc" className="text-gray-700 font-normal">Income Document (Bank Statement)</Label>
@@ -297,8 +107,7 @@ export function PatientDetailsForm() {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleDocumentChange}
-                className="flex-1"
-                disabled={isLoading}
+                className="flex-1 border-gray-100"
               />
               {incomeDocument && (
                 <div className="flex items-center gap-1 text-sm text-green-600">
@@ -307,18 +116,18 @@ export function PatientDetailsForm() {
                 </div>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 font-light">
               Upload your bank statement for income verification. This will be reviewed by admin to determine your discount eligibility.
             </p>
           </div>
           {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="flex items-center gap-2 text-sm text-red-500">
+              <AlertCircle className="w-4 h-4" />
+              <span>{error}</span>
+            </div>
           )}
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal" disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Continue'}
+          <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal">
+            {isLoading ? 'Submitting...' : 'Continue'}
           </Button>
         </form>
       </CardContent>

@@ -1,11 +1,9 @@
 import useSWR from 'swr';
-import { patientService, commonService } from '@/api';
-import type { PatientDetails, ApiResponse, ApproveKycRequest, IncomeLevel } from '@/types';
+import { patientService, adminService, commonService } from '@/api';
+import type { PatientDetails, ApiResponse, ApproveKycRequest, IncomeLevel, UpdateRegistrationStatusRequest } from '@/types';
 
 /**
  * Hook to fetch patients by status
- * @param regStatus - Registration status filter (optional)
- * @param kycStatus - KYC status filter (optional)
  */
 export function usePatients(regStatus?: string, kycStatus?: string) {
   const cacheKey = regStatus || kycStatus 
@@ -27,23 +25,22 @@ export function usePatients(regStatus?: string, kycStatus?: string) {
 }
 
 /**
- * Hook to update patient
+ * Hook to update patient info (saves full patient info including KYC)
  */
 export function useUpdatePatient() {
   const updatePatient = async (patient: PatientDetails, kycDocument?: File) => {
-    return await patientService.updatePatient(patient, kycDocument);
+    return await patientService.savePatientInfo(patient, kycDocument);
   };
 
   return { updatePatient };
 }
 
 /**
- * Hook to update patient status
- * Passes full patient object per API spec (only id, patientId, registrationStatus validated)
+ * Hook to update patient registration status via admin service
  */
 export function useUpdatePatientStatus() {
-  const updateStatus = async (patient: PatientDetails) => {
-    return await patientService.updatePatientStatus(patient);
+  const updateStatus = async (data: UpdateRegistrationStatusRequest) => {
+    return await adminService.updateRegistrationStatus(data);
   };
 
   return { updateStatus };
@@ -54,7 +51,7 @@ export function useUpdatePatientStatus() {
  */
 export function useApproveKyc() {
   const approveKyc = async (data: ApproveKycRequest) => {
-    return await patientService.approveKyc(data);
+    return await adminService.approveKyc(data);
   };
 
   return { approveKyc };

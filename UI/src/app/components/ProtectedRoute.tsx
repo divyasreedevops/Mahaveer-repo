@@ -1,32 +1,31 @@
-import { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useApp } from '@/app/context/AppContext';
 
 interface ProtectedRouteProps {
-  children: ReactNode;
-  requiredRole?: 'patient' | 'admin';
+  allowedRoles: ('patient' | 'admin')[];
 }
 
-/**
- * ProtectedRoute component to guard routes that require authentication
- * Redirects to appropriate login page if user is not authenticated
- */
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const location = useLocation();
-  
-  // Check if user is authenticated (has token)
-  const token = localStorage.getItem('auth_token');
-  const isAuthenticated = !!token;
-  
-  // If not authenticated, redirect to appropriate login page
-  if (!isAuthenticated) {
-    const loginPath = requiredRole === 'admin' ? '/admin/login' : '/patient/login';
-    return <Navigate to={loginPath} state={{ from: location }} replace />;
+export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const { isAuthenticated, userType, isLoading } = useApp();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-blue-50">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    );
   }
-  
-  // TODO: Add role-based validation if needed
-  // For now, we trust the token and route separation
-  
-  return <>{children}</>;
-}
 
-export default ProtectedRoute;
+  if (!isAuthenticated) {
+    // Redirect to home if not logged in
+    return <Navigate to="/" replace />;
+  }
+
+  if (userType && !allowedRoles.includes(userType)) {
+    // Redirect to their respective dashboard if they are in the wrong portal
+    return <Navigate to={userType === 'admin' ? '/admin/dashboard' : '/patient/dashboard'} replace />;
+  }
+
+  return <Outlet />;
+}

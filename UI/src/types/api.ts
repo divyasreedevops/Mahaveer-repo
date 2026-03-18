@@ -161,11 +161,98 @@ export interface IncomeLevel {
 }
 
 /**
+ * Update Registration Status request
+ */
+export interface UpdateRegistrationStatusRequest {
+  id: number;
+  patientId: string;
+  registrationStatus: string;
+}
+
+/**
  * Approve KYC request
  */
-export interface ApproveKycRequest extends Partial<PatientDetails> {
+export interface ApproveKycRequest {
   id: number;
   incomeLevel: string;
-  discountPercentage?: number;
-  updatedBy?: number;
+  discountPercentage: number;
 }
+
+/**
+ * Appointment Slot Types
+ */
+export interface AvailableSlot {
+  slotDate: string;
+  slotTime: string;
+  isAvailable: boolean;
+}
+
+export interface BookAppointmentRequest {
+  patientId: string | null;
+  prescriptionId: number;
+  slotDate: string;
+  slotTime: string | null;
+}
+
+export interface SlotBookingResponse {
+  bookingId: number;
+  message: string;
+  remainingSlots?: number;
+}
+
+export interface RescheduleSlotRequest {
+  bookingId: number;
+  patientId: string;
+  prescriptionId: number;
+  slotDate: string;
+  slotTime: string;
+}
+
+/**
+ * Prescription Approval/Rejection Types
+ */
+export interface PrescriptionApprovalRequest {
+  prescriptionId: number;
+  approvedBy: string | null;
+  remarks: string | null;
+}
+
+export interface PrescriptionRejectionRequest {
+  prescriptionId: number;
+  rejectedBy: string | null;
+  reason: string | null;
+}
+
+export interface PrescriptionResponse {
+  medicines: string[] | null;
+}
+
+/**
+ * Medicine Info for Invoices
+ */
+export interface MedicineInfo {
+  name: string | null;
+  dosage: string | null;
+  frequency: string | null;
+}
+
+export interface PrescriptionDetails {
+  id: number;
+  prescriptionKey: string;
+  patientId: string;
+  pId: number;
+  doctorName: string;
+  hospitalName: string;
+  prescriptionUrl: string;
+  uploadDate: string;
+  status: string;
+  createdDate: string;
+  updatedDate: string;
+  medicines?: { name: string; dosage: string; frequency: string }[];
+  approvedBy?: string | null;
+  approvedDate?: string | null;
+  approvalRemarks?: string | null;
+  rejectedBy?: string | null;
+  rejectionReason?: string | null;
+}
+

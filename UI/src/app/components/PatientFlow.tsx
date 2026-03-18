@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { PatientRegistration } from './patient/PatientRegistration';
 import { PatientDetails } from './patient/PatientDetails';
 import { PrescriptionUpload } from './patient/PrescriptionUpload';
 import { InvoiceView } from './patient/InvoiceView';
+import { PaymentComplete } from './patient/PaymentComplete';
 import { SlotBooking } from './patient/SlotBooking';
 
 export interface PatientData {
@@ -35,7 +36,7 @@ export function PatientFlow() {
       <Routes>
         <Route 
           path="register" 
-          element={<PatientRegistration />} 
+          element={<PatientRegistration patientData={patientData} updateData={updatePatientData} />} 
         />
         <Route 
           path="details" 
@@ -43,7 +44,7 @@ export function PatientFlow() {
         />
         <Route 
           path="upload-prescription" 
-          element={<PrescriptionUpload updateData={updatePatientData} />} 
+          element={<PrescriptionUpload patientData={patientData} updateData={updatePatientData} />} 
         />
         <Route 
           path="invoice" 
@@ -51,7 +52,11 @@ export function PatientFlow() {
         />
         <Route 
           path="slot-booking" 
-          element={<SlotBooking />} 
+          element={<SlotBooking patientData={patientData} updateData={updatePatientData} />} 
+        />
+        <Route 
+          path="payment-complete" 
+          element={<PaymentComplete patientData={patientData} updateData={updatePatientData} />} 
         />
         <Route path="*" element={<Navigate to="/patient/register" replace />} />
       </Routes>

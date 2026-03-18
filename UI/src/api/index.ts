@@ -10,4 +10,5 @@ export { inventoryService } from './inventory.service';
 export { userService } from './user.service';
 export { paymentService } from './payment.service';
 export { commonService } from './common.service';
+export { adminService } from './admin.service';
 export { prescriptionService } from './prescription.service';

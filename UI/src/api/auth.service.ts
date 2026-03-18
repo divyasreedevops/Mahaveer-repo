@@ -31,9 +31,11 @@ export const authService = {
       const data = response.data;
       
       if (data.isAuthenticated) {
-        // Store a session flag since backend doesn't return token
-        localStorage.setItem('auth_token', 'authenticated');
-        if (credentials.username) {
+        // Store the JWT token returned by backend
+        localStorage.setItem('auth_token', data.token || 'authenticated');
+        if (data.user?.username) {
+          localStorage.setItem('username', data.user.username);
+        } else if (credentials.username) {
           localStorage.setItem('username', credentials.username);
         }
         return {

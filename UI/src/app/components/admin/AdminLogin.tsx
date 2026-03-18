@@ -1,36 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks';
-import { useToast } from '@/lib';
+import { useApp } from '@/app/context/AppContext';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Shield, AlertCircle, ArrowLeft } from 'lucide-react';
-import { Alert, AlertDescription } from '@/app/components/ui/alert';
+import { Shield, ArrowLeft } from 'lucide-react';
 
 export function AdminLogin() {
+  const { adminLogin, isAuthenticated, userType, isLoading } = useApp();
   const navigate = useNavigate();
-  const toast = useToast();
-  const { login, isLoading, error: authError } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isAuthenticated && userType === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, userType, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const toastId = toast.loading('Logging in...');
-    const result = await login({ username, password });
-    toast.dismiss(toastId);
-    if (result.success) {
-      toast.success('Login successful!');
-      navigate('/admin/dashboard');
-    } else {
-      toast.error(result.error || 'Login failed');
+    if (!username.trim() || !password.trim()) {
+      setError('Please enter username and password');
+      return;
+    }
+    setError('');
+    const success = await adminLogin(username, password);
+    if (success) {
+      navigate('/admin/dashboard', { replace: true });
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 bg-blue-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-blue-50">
       <Button
         variant="ghost"
         onClick={() => navigate('/')}
@@ -39,7 +43,7 @@ export function AdminLogin() {
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Home
       </Button>
-      <Card className="w-full max-w-md border-gray-100 shadow-lg rounded-2xl">
+      <Card className="w-full max-w-md mx-auto border-gray-100 shadow-lg rounded-2xl">
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-6 h-6 text-purple-600" />
@@ -73,13 +77,8 @@ export function AdminLogin() {
                 className="border-gray-100"
               />
             </div>
-            {authError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{authError}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal" disabled={isLoading}>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-700 shadow-sm hover:shadow-md transition-all duration-300 font-normal">
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>

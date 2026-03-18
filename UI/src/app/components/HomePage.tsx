@@ -27,18 +27,11 @@ export function HomePage() {
               <p className="text-gray-600 mb-6">
                 Register, upload prescription, and receive medicines with 90% subsidy
               </p>
-              <div className="space-y-2">
-                <Link to="/patient/login">
-                  <Button className="w-full bg-green-600 hover:bg-green-700">
-                    Login as Patient
-                  </Button>
-                </Link>
-                <Link to="/patient/register">
-                  <Button variant="outline" className="w-full">
-                    Register as Patient
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/patient/register">
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  Get Started as Patient
+                </Button>
+              </Link>
             </div>
           </Card>
 
