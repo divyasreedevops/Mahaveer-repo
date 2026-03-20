@@ -372,8 +372,14 @@ export function InventoryManagement() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {(type === 'injection' || type === 'syrup') ? (
+                            {type === 'syrup' ? (
                               <SelectItem value="ml">ml</SelectItem>
+                            ) : type === 'injection' ? (
+                              <>
+                                <SelectItem value="mg">mg</SelectItem>
+                                <SelectItem value="ml">ml</SelectItem>
+                                <SelectItem value="mcg">mcg</SelectItem>
+                              </>
                             ) : (
                               <>
                                 <SelectItem value="mg">mg</SelectItem>
