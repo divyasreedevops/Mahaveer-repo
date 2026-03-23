@@ -223,17 +223,73 @@ export interface PrescriptionRejectionRequest {
   reason: string | null;
 }
 
-export interface PrescriptionResponse {
-  medicines: string[] | null;
-}
-
 /**
- * Medicine Info for Invoices
+ * Medicine Info for Invoices and Prescriptions
  */
 export interface MedicineInfo {
   name: string | null;
   dosage: string | null;
   frequency: string | null;
+}
+
+/**
+ * Upload result (matches PrescriptionInfo in docs)
+ */
+export interface PrescriptionResponse {
+  medicines: MedicineInfo[] | null;
+  doctorName: string | null;
+  hospitalName: string | null;
+  prescriptionKey: string;
+  prescriptionId: number | null;
+}
+
+/**
+ * Request to save prescription after review
+ */
+export interface PrescriptionSaveRequest {
+  prescriptionKey: string;
+  patientId: string;
+  pId: number;
+  doctorName?: string | null;
+  hospitalName?: string | null;
+  medicines: MedicineInfo[];
+}
+
+/**
+ * Request to generate an invoice
+ */
+export interface GenerateInvoiceRequest {
+  patientId: string;
+  prescriptionKey: number; // This is the prescription ID
+  id: number; // This is the patient numeric ID
+}
+
+/**
+ * Invoice line item
+ */
+export interface InvoiceItem {
+  medicineName: string;
+  inventoryId: number | null;
+  mrp: number;
+  discount: number;
+  finalPrice: number;
+  isAvailable: boolean;
+}
+
+/**
+ * Full Invoice Details
+ */
+export interface Invoice {
+  prescriptionId: number;
+  patientId: string;
+  pId?: string; // Optional field used in summary
+  items: InvoiceItem[];
+  subtotal: number;
+  totalDiscount: number;
+  totalAmount: number;
+  generatedDate: string;
+  invoiceNumber: string;
+  status?: string; // e.g., 'PAID', 'PENDING'
 }
 
 export interface PrescriptionDetails {
@@ -248,7 +304,7 @@ export interface PrescriptionDetails {
   status: string;
   createdDate: string;
   updatedDate: string;
-  medicines?: { name: string; dosage: string; frequency: string }[];
+  medicines?: MedicineInfo[];
   approvedBy?: string | null;
   approvedDate?: string | null;
   approvalRemarks?: string | null;

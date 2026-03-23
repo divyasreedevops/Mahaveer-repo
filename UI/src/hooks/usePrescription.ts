@@ -1,31 +1,27 @@
 import { useState, useCallback } from 'react';
 import { prescriptionService } from '@/api';
-import type {
-  UploadPrescriptionResponse,
-  GenerateInvoiceResponse,
-} from '@/api/prescription.service';
-import type { ApiResponse, MedicineInfo } from '@/types';
+import type { ApiResponse, MedicineInfo, PrescriptionResponse, Invoice } from '@/types';
 
 interface UsePrescriptionReturn {
   uploadPrescription: (
     file: File,
     patientId: string,
     id: number
-  ) => Promise<ApiResponse<UploadPrescriptionResponse>>;
+  ) => Promise<ApiResponse<PrescriptionResponse>>;
   generateInvoice: (
     patientId: string,
     prescriptionId: number,
     pId: number,
     medicines: MedicineInfo[]
-  ) => Promise<ApiResponse<GenerateInvoiceResponse>>;
+  ) => Promise<ApiResponse<Invoice>>;
   uploadAndGenerateInvoice: (
     file: File,
     patientId: string,
     id: number
   ) => Promise<
     ApiResponse<{
-      prescription: UploadPrescriptionResponse;
-      invoice: GenerateInvoiceResponse | null;
+      prescription: PrescriptionResponse;
+      invoice: Invoice | null;
     }>
   >;
   isLoading: boolean;
@@ -45,7 +41,7 @@ export function usePrescription(): UsePrescriptionReturn {
       file: File,
       patientId: string,
       id: number
-    ): Promise<ApiResponse<UploadPrescriptionResponse>> => {
+    ): Promise<ApiResponse<PrescriptionResponse>> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -53,7 +49,7 @@ export function usePrescription(): UsePrescriptionReturn {
         if (!result.success) {
           setError(result.error || 'Failed to upload prescription');
         }
-        return result as ApiResponse<UploadPrescriptionResponse>;
+        return result as ApiResponse<PrescriptionResponse>;
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to upload prescription';
         setError(errorMessage);
@@ -71,15 +67,19 @@ export function usePrescription(): UsePrescriptionReturn {
       prescriptionId: number,
       pId: number,
       medicines: MedicineInfo[]
-    ): Promise<ApiResponse<GenerateInvoiceResponse>> => {
+    ): Promise<ApiResponse<Invoice>> => {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await prescriptionService.generateInvoice(patientId, prescriptionId, pId, medicines);
+        const result = await prescriptionService.generateInvoice({
+          patientId,
+          prescriptionKey: prescriptionId,
+          id: pId
+        });
         if (!result.success) {
           setError(result.error || 'Failed to generate invoice');
         }
-        return result as ApiResponse<GenerateInvoiceResponse>;
+        return result as ApiResponse<Invoice>;
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to generate invoice';
         setError(errorMessage);
@@ -96,7 +96,7 @@ export function usePrescription(): UsePrescriptionReturn {
       file: File,
       patientId: string,
       id: number
-    ): Promise<ApiResponse<{ prescription: UploadPrescriptionResponse; invoice: GenerateInvoiceResponse | null }>> => {
+    ): Promise<ApiResponse<{ prescription: PrescriptionResponse; invoice: Invoice | null }>> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -106,18 +106,31 @@ export function usePrescription(): UsePrescriptionReturn {
           setError(uploadResult.error || 'Failed to upload prescription');
           return { success: false, error: uploadResult.error };
         }
+        
+        // Wait for prescriptionId
+        const pIdFromServer = uploadResult.data?.prescriptionId;
+        if (!pIdFromServer) {
+          throw new Error('Prescription ID is missing from upload response');
+        }
+        
         // Step 2: Generate invoice with extracted medicines (if any)
-        const medicines: MedicineInfo[] = (uploadResult.data?.medicines ?? []).map((name: string) => ({
-          name,
-          dosage: null,
-          frequency: null,
+        const medicines: MedicineInfo[] = (uploadResult.data?.medicines ?? []).map((m: any) => ({
+          name: m.name,
+          dosage: m.dosage || null,
+          frequency: m.frequency || null,
         }));
-        const invoiceResult = await prescriptionService.generateInvoice(patientId, id, id, medicines);
+        
+        const invoiceResult = await prescriptionService.generateInvoice({
+          patientId,
+          prescriptionKey: pIdFromServer,
+          id
+        });
+        
         return {
           success: true,
           data: {
-            prescription: uploadResult.data as UploadPrescriptionResponse,
-            invoice: invoiceResult.success ? invoiceResult.data as GenerateInvoiceResponse : null,
+            prescription: uploadResult.data as PrescriptionResponse,
+            invoice: invoiceResult.success ? invoiceResult.data as Invoice : null,
           },
         };
       } catch (err: any) {

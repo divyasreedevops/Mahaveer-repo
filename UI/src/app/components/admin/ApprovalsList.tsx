@@ -9,6 +9,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Label } from '@/app/components/ui/label';
 import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { CheckCircle, XCircle, Clock, User, Phone, Mail, FileText, Calendar, DollarSign, CreditCard, Loader2, RefreshCw } from 'lucide-react';
 import type { Patient } from '@/app/context/AppContext';
@@ -28,12 +29,16 @@ const formatDateToDDMMYYYY = (dateStr: string): string => {
 };
 
 export function ApprovalsList() {
-  const {} = useApp();
+  const { rejectPatientKYC } = useApp();
   const [pendingApprovals, setPendingApprovals] = useState<Patient[]>([]);
   const [incomeOptions, setIncomeOptions] = useState<string[]>(['Low', 'Medium', 'High']);
   const [incomeLevelsData, setIncomeLevelsData] = useState<{ name: string; discount: number }[]>([]);
   const [loadingList, setLoadingList] = useState(true);
+  
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [rejectingPatient, setRejectingPatient] = useState<Patient | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  
   const [incomeLevel, setIncomeLevel] = useState<string>('Medium');
   const [discountPercentage, setDiscountPercentage] = useState<number>(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,13 +112,25 @@ export function ApprovalsList() {
     }
   };
 
-  const handleReject = async (patient: Patient) => {
+  const handleRejectClick = (patient: Patient) => {
+    setRejectingPatient(patient);
+    setRejectionReason('');
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingPatient || !rejectionReason.trim()) return;
+    setIsSubmitting(true);
     try {
-      await api.admin.updateRegStatus({ id: parseInt(patient.id), patientId: patient.patientId, registrationStatus: 'Rejected' });
-      toast.success(`KYC rejected for ${patient.name || patient.patientId}`);
+      // In a real app we would use rejectPatientKYC, but since we are interacting
+      // with the API directly here to mimic the approve flow:
+      await api.admin.updateRegStatus({ id: parseInt(rejectingPatient.id), patientId: rejectingPatient.patientId, registrationStatus: 'Rejected' });
+      toast.success(`KYC rejected for ${rejectingPatient.name || rejectingPatient.patientId}`);
+      setRejectingPatient(null);
       loadData();
     } catch (err: any) {
       toast.error(err.message || 'Failed to reject KYC');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -228,7 +245,7 @@ export function ApprovalsList() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleReject(patient)}
+                        onClick={() => handleRejectClick(patient)}
                         className="flex-1"
                       >
                         <XCircle className="w-4 h-4 mr-1" />
@@ -295,7 +312,7 @@ export function ApprovalsList() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => handleReject(patient)}
+                            onClick={() => handleRejectClick(patient)}
                           >
                             <XCircle className="w-4 h-4 mr-1" />
                             Reject
@@ -423,6 +440,38 @@ export function ApprovalsList() {
             </Button>
             <Button size="sm" variant="default" onClick={handleApproveConfirm} disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700">
               {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin mr-1" />Approving...</> : <><CheckCircle className="w-4 h-4 mr-1" />Approve</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <Dialog open={rejectingPatient !== null} onOpenChange={() => setRejectingPatient(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Reject KYC</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting the KYC documents. The patient will see this reason and be prompted to resubmit.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="rejectReason">Rejection Reason</Label>
+              <Textarea
+                id="rejectReason"
+                placeholder="e.g. Document image is blurry, incorrect name matching..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button size="sm" variant="outline" onClick={() => setRejectingPatient(null)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button size="sm" variant="destructive" onClick={handleRejectConfirm} disabled={!rejectionReason.trim() || isSubmitting}>
+              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin mr-1" />Rejecting...</> : 'Confirm Rejection'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { Button } from '@/app/components/ui/button';
 import { Shield, User } from 'lucide-react';
 import CancerRibbon from '../../imports/CancerRibbon1';
-import minfyLogo from "../../assets/Container.svg";
+import minfyLogo from "../../assets/minfy_logo.png";
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useApp } from '@/app/context/AppContext';
 

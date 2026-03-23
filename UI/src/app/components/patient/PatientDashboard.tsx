@@ -39,6 +39,7 @@ import {
 export function PatientDashboard() {
   const { currentPatient, logout, patientConfirmCollection, refreshPatientData } = useApp();
   const [isRefreshing, setIsRefreshing] = useState(true);
+  const [isResubmitting, setIsResubmitting] = useState(false);
 
   useEffect(() => {
     setIsRefreshing(true);
@@ -69,7 +70,7 @@ export function PatientDashboard() {
   }
 
   // pending + details not yet submitted → show the personal details / KYC form
-  if (currentPatient.kycStatus === 'pending' && !currentPatient.incomeDocumentUrl) {
+  if ((currentPatient.kycStatus === 'pending' && !currentPatient.incomeDocumentUrl) || isResubmitting) {
     return (
       <div className="min-h-screen bg-blue-50">
         <header className="bg-white border-b border-gray-100 shadow-sm">
@@ -186,7 +187,10 @@ export function PatientDashboard() {
                     'Documents provided were unclear or incomplete.'}
                 </p>
               </div>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 py-6 rounded-xl font-normal text-lg">
+              <Button 
+                onClick={() => setIsResubmitting(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700 py-6 rounded-xl font-normal text-lg"
+              >
                 Resubmit KYC Documents
               </Button>
             </CardContent>
@@ -524,37 +528,47 @@ export function PatientDashboard() {
                           {/* TILE 1: INVOICE */}
                           <div
                             className={`p-6 rounded-[1.5rem] border-2 transition-all ${
-                              pickup.status === 'invoice_ready'
-                                ? 'border-blue-500 bg-blue-50/50'
-                                : presc.approvalStatus === 'approved' &&
-                                    (!presc.processingStatus ||
-                                      presc.processingStatus === 'NOT_PROCESSED')
-                                  ? 'border-blue-200 bg-blue-50/30'
-                                  : pickup.status === 'missing_medicine'
-                                    ? 'border-gray-100 bg-gray-50 opacity-60'
-                                    : 'border-gray-100 bg-white'
+                              pickup.paymentMethod !== null
+                                ? 'border-green-500 bg-green-50/50'
+                                : pickup.status === 'invoice_ready'
+                                  ? 'border-blue-500 bg-blue-50/50'
+                                  : presc.approvalStatus === 'approved' &&
+                                      (!presc.processingStatus ||
+                                        presc.processingStatus === 'NOT_PROCESSED')
+                                    ? 'border-blue-200 bg-blue-50/30'
+                                    : pickup.status === 'missing_medicine'
+                                      ? 'border-gray-100 bg-gray-50 opacity-60'
+                                      : 'border-gray-100 bg-white'
                             }`}
                           >
                             <div className="flex items-start justify-between mb-4">
                               <div
                                 className={`p-2 rounded-xl ${
-                                  pickup.status === 'invoice_ready'
-                                    ? 'bg-blue-600 text-white'
-                                    : presc.approvalStatus === 'approved' &&
-                                        (!presc.processingStatus ||
-                                          presc.processingStatus === 'NOT_PROCESSED')
-                                      ? 'bg-blue-500 text-white'
-                                      : 'bg-gray-200 text-gray-400'
+                                  pickup.paymentMethod !== null
+                                    ? 'bg-green-500 text-white'
+                                    : pickup.status === 'invoice_ready'
+                                      ? 'bg-blue-600 text-white'
+                                      : presc.approvalStatus === 'approved' &&
+                                          (!presc.processingStatus ||
+                                            presc.processingStatus === 'NOT_PROCESSED')
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-gray-200 text-gray-400'
                                 }`}
                               >
                                 <Receipt className="w-6 h-6" />
                               </div>
-                              {pickup.status === 'invoice_ready' && (
+                              {pickup.paymentMethod !== null && (
+                                <Badge className="bg-green-600 text-white border-none font-normal">
+                                  Payment Complete
+                                </Badge>
+                              )}
+                              {pickup.paymentMethod === null && pickup.status === 'invoice_ready' && (
                                 <Badge className="bg-blue-600 text-white border-none font-normal">
                                   Ready to Pay
                                 </Badge>
                               )}
-                              {presc.approvalStatus === 'approved' &&
+                              {pickup.paymentMethod === null &&
+                                presc.approvalStatus === 'approved' &&
                                 (!presc.processingStatus ||
                                   presc.processingStatus === 'NOT_PROCESSED') &&
                                 pickup.status !== 'invoice_ready' && (
@@ -565,31 +579,37 @@ export function PatientDashboard() {
                             </div>
                             <h4
                               className={`text-lg font-normal ${
-                                pickup.status === 'invoice_ready'
-                                  ? 'text-blue-800'
-                                  : presc.approvalStatus === 'approved' &&
-                                      (!presc.processingStatus ||
-                                        presc.processingStatus === 'NOT_PROCESSED')
-                                    ? 'text-blue-700'
-                                    : 'text-gray-400'
+                                pickup.paymentMethod !== null
+                                  ? 'text-green-800'
+                                  : pickup.status === 'invoice_ready'
+                                    ? 'text-blue-800'
+                                    : presc.approvalStatus === 'approved' &&
+                                        (!presc.processingStatus ||
+                                          presc.processingStatus === 'NOT_PROCESSED')
+                                      ? 'text-blue-700'
+                                      : 'text-gray-400'
                               }`}
                             >
-                              {pickup.status === 'missing_medicine'
-                                ? 'Invoice on Hold'
-                                : 'Your Invoice'}
+                              {pickup.paymentMethod !== null
+                                ? 'Invoice Generated & Payment Done'
+                                : pickup.status === 'missing_medicine'
+                                  ? 'Invoice on Hold'
+                                  : 'Your Invoice'}
                             </h4>
                             <p className="text-sm font-light text-gray-500 mt-1">
-                              {pickup.status === 'invoice_ready'
-                                ? `Total: ₹${pickup.invoice?.totalAmount}`
-                                : pickup.status === 'missing_medicine'
-                                  ? 'Wait for stock resolution'
-                                  : presc.approvalStatus === 'approved' &&
-                                      (!presc.processingStatus ||
-                                        presc.processingStatus === 'NOT_PROCESSED')
-                                    ? 'Click to generate and view your invoice'
-                                    : 'Billing details available'}
+                              {pickup.paymentMethod !== null
+                                ? `Total Paid: ₹${pickup.invoice?.totalAmount}`
+                                : pickup.status === 'invoice_ready'
+                                  ? `Total: ₹${pickup.invoice?.totalAmount}`
+                                  : pickup.status === 'missing_medicine'
+                                    ? 'Wait for stock resolution'
+                                    : presc.approvalStatus === 'approved' &&
+                                        (!presc.processingStatus ||
+                                          presc.processingStatus === 'NOT_PROCESSED')
+                                      ? 'Click to generate and view your invoice'
+                                      : 'Billing details available'}
                             </p>
-                            {pickup.status === 'invoice_ready' && (
+                            {pickup.paymentMethod === null && pickup.status === 'invoice_ready' && (
                               <Button
                                 onClick={() =>
                                   setShowInvoiceModal({
@@ -604,7 +624,8 @@ export function PatientDashboard() {
                                 <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                               </Button>
                             )}
-                            {presc.approvalStatus === 'approved' &&
+                            {pickup.paymentMethod === null &&
+                              presc.approvalStatus === 'approved' &&
                               (!presc.processingStatus ||
                                 presc.processingStatus === 'NOT_PROCESSED') &&
                               pickup.status !== 'invoice_ready' && (
@@ -626,6 +647,12 @@ export function PatientDashboard() {
                                   )}
                                 </Button>
                               )}
+                            {pickup.paymentMethod !== null && (
+                              <div className="mt-4 flex items-center gap-2 text-green-700 text-sm font-light">
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Payment received successfully</span>
+                              </div>
+                            )}
                           </div>
 
                           {/* TILE 2: MISSING MEDICINE */}

@@ -145,18 +145,17 @@ export const patientService = {
   async savePatientInfo(data: PatientDetails, kycDocument?: File): Promise<ApiResponse<void>> {
     try {
       const formData = new FormData();
-      // Add all fields to FormData as per api.json /Patient/SavePatientInfo
-      if (data.id) formData.append('Id', String(data.id));
-      if (data.patientId) formData.append('PatientId', data.patientId);
-      if (data.fullName) formData.append('FullName', data.fullName);
-      if (data.mobileNumber) formData.append('MobileNumber', data.mobileNumber);
-      if (data.email) formData.append('Email', data.email);
-      if (data.aadharNumber) formData.append('AadharNumber', data.aadharNumber);
-      if (data.dob) formData.append('Dob', data.dob);
-      if (data.registrationStatus) formData.append('RegistrationStatus', data.registrationStatus);
-      if (data.kycStatus) formData.append('KYCStatus', data.kycStatus);
-      if (data.incomeLevel) formData.append('IncomeLevel', data.incomeLevel);
-      if (data.discountPercentage !== null) formData.append('DiscountPercentage', String(data.discountPercentage));
+      if (data.id) formData.append('id', String(data.id));
+      if (data.patientId) formData.append('patientId', data.patientId);
+      if (data.fullName) formData.append('fullName', data.fullName);
+      if (data.mobileNumber) formData.append('mobileNumber', data.mobileNumber);
+      if (data.email) formData.append('email', data.email);
+      if (data.aadharNumber) formData.append('aadharNumber', data.aadharNumber);
+      if (data.dob) formData.append('dob', data.dob);
+      if (data.registrationStatus) formData.append('registrationStatus', data.registrationStatus);
+      if (data.kycStatus) formData.append('kycStatus', data.kycStatus);
+      if (data.incomeLevel) formData.append('incomeLevel', data.incomeLevel);
+      if (data.discountPercentage !== null && data.discountPercentage !== undefined) formData.append('discountPercentage', String(data.discountPercentage));
       
       if (kycDocument) {
         formData.append('kycDocument', kycDocument);

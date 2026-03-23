@@ -186,11 +186,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem('currentPatient');
       if (!saved) return null;
       const p: Patient = JSON.parse(saved);
-      // Re-normalize kycStatus from registrationStatus for stale localStorage data.
-      // If registrationStatus is "Approved", the patient's KYC is done — treat pending as approved.
-      if (p && p.kycStatus === 'pending' && (p.registrationStatus || '').toLowerCase() === 'approved') {
-        p.kycStatus = 'approved';
-      }
       return p;
     } catch {
       return null;
@@ -259,7 +254,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           let slot = null;
           const prescId = p.id || p.prescriptionId;
           const statusRaw = (p.status || p.prescriptionStatus || '').toUpperCase();
-          if (statusRaw === 'APPROVED') {
+          const isApproved = statusRaw === 'APPROVED' || statusRaw === 'PROCESSED' || statusRaw === 'RECEIVED';
+          if (isApproved) {
             try { slot = await api.appointment.getSlot(patient.patientId, prescId); } catch {}
           }
           const presc = mapApiPrescriptionToFrontend(p, slot);
@@ -289,10 +285,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
                   generatedDate: inv.generatedDate,
                 };
                 presc.pickups[0].invoice = invoice;
-                // If invoice is already paid, update pickup status
+                // If invoice is already paid, preserve slot_booked if a slot was loaded,
+                // otherwise mark as slot_available so the patient can book a slot.
                 if ((invoiceSummary.status || '').toUpperCase() === 'PAID') {
-                  presc.pickups[0].status = 'slot_available';
                   presc.pickups[0].paymentMethod = 'online';
+                  if (presc.pickups[0].status !== 'slot_booked' && presc.pickups[0].status !== 'collected') {
+                    presc.pickups[0].status = 'slot_available';
+                  }
                 } else {
                   presc.pickups[0].status = 'invoice_ready';
                 }
@@ -343,12 +342,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (res.isAuthenticated && res.token) {
         localStorage.setItem('token', res.token);
         localStorage.setItem('userType', 'patient');
-        const patient = mapApiPatientToFrontend(res.patient);
+        
+        let patient = mapApiPatientToFrontend(res.patient);
+        try {
+          // Fetch full patient record to get kycDocumentUrl and other details
+          const fetched = await api.patient.getByMobile(mobile);
+          if (fetched) {
+            patient = mapApiPatientToFrontend(fetched);
+          }
+        } catch (fetchErr) {
+          console.error('Failed to fetch full patient details', fetchErr);
+        }
+
         setCurrentPatient(patient);
         localStorage.setItem('currentPatient', JSON.stringify(patient));
         setIsAuthenticated(true);
         setUserType('patient');
-        toast.success(`Welcome back, ${res.patient?.fullName || 'Patient'}!`);
+        toast.success(`Welcome back, ${patient.name || 'Patient'}!`);
         return true;
       } else if (res.patientId) {
         // New patient — try to fetch their DB record
