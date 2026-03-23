@@ -655,12 +655,14 @@ export function PatientDashboard() {
                             )}
                           </div>
 
-                          {/* TILE 2: MISSING MEDICINE */}
+                          {/* TILE 2: STOCK STATUS */}
                           <div
                             className={`p-6 rounded-[1.5rem] border-2 transition-all ${
                               pickup.status === 'missing_medicine'
                                 ? 'border-amber-500 bg-amber-50/50'
-                                : 'border-gray-100 bg-white'
+                                : pickup.invoice !== null
+                                  ? 'border-green-200 bg-green-50/30'
+                                  : 'border-gray-100 bg-white opacity-60'
                             }`}
                           >
                             <div className="flex items-start justify-between mb-4">
@@ -668,7 +670,9 @@ export function PatientDashboard() {
                                 className={`p-2 rounded-xl ${
                                   pickup.status === 'missing_medicine'
                                     ? 'bg-amber-500 text-white'
-                                    : 'bg-green-500 text-white'
+                                    : pickup.invoice !== null
+                                      ? 'bg-green-500 text-white'
+                                      : 'bg-gray-200 text-gray-400'
                                 }`}
                               >
                                 {pickup.status === 'missing_medicine' ? (
@@ -682,13 +686,26 @@ export function PatientDashboard() {
                                   Action Required
                                 </Badge>
                               )}
+                              {pickup.status !== 'missing_medicine' && pickup.invoice !== null && (
+                                <Badge className="bg-green-100 text-green-700 border-green-200 font-normal">
+                                  Verified
+                                </Badge>
+                              )}
                             </div>
                             <h4
-                              className={`text-lg font-normal ${pickup.status === 'missing_medicine' ? 'text-amber-800' : 'text-green-700'}`}
+                              className={`text-lg font-normal ${
+                                pickup.status === 'missing_medicine'
+                                  ? 'text-amber-800'
+                                  : pickup.invoice !== null
+                                    ? 'text-green-700'
+                                    : 'text-gray-400'
+                              }`}
                             >
                               {pickup.status === 'missing_medicine'
                                 ? 'Stock Alert'
-                                : 'Stock Confirmed'}
+                                : pickup.invoice !== null
+                                  ? 'Stock Confirmed'
+                                  : 'Stock Status'}
                             </h4>
                             <div className="mt-1">
                               {pickup.status === 'missing_medicine' ? (
@@ -699,9 +716,13 @@ export function PatientDashboard() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : (
+                              ) : pickup.invoice !== null ? (
                                 <p className="text-sm font-light text-gray-500">
                                   All medicines are available
+                                </p>
+                              ) : (
+                                <p className="text-sm font-light text-gray-400">
+                                  Stock will be verified after invoice is generated
                                 </p>
                               )}
                             </div>
@@ -733,7 +754,7 @@ export function PatientDashboard() {
                             </div>
                           )}
 
-                          {pickup.status === 'slot_available' && (
+                          {pickup.status === 'slot_available' && pickup.paymentMethod !== null && (
                             <div className="bg-blue-600 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
                               <div className="flex items-center gap-4">
                                 <div className="p-2 bg-white/20 rounded-xl">
@@ -755,7 +776,7 @@ export function PatientDashboard() {
                             </div>
                           )}
 
-                          {pickup.status === 'slot_booked' && (
+                          {pickup.status === 'slot_booked' && pickup.paymentMethod !== null && (
                             <div className="bg-purple-50 rounded-2xl p-6 border border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                               <div className="flex items-center gap-4">
                                 <div className="p-2 bg-purple-600 text-white rounded-xl">
