@@ -210,14 +210,14 @@ export function PrescriptionApprovalsList() {
                               <Check className="w-4 h-4 mr-1" />
                               Approve
                             </Button>
-                            <Button
+                            {/* <Button
                               size="sm"
                               onClick={() => handleNotifyClick(patient.patientId, prescription.id)}
                               className="bg-amber-500 hover:bg-amber-600 shadow-sm transition-all duration-300 font-normal h-9 px-4 rounded-lg text-white"
                             >
                               <AlertCircle className="w-4 h-4 mr-1" />
                               Notify
-                            </Button>
+                            </Button> */}
                             <Button
                               size="sm"
                               variant="ghost"
