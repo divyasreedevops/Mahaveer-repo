@@ -40,7 +40,7 @@ export function PrescriptionApprovalsList() {
         prescription: {
           id: String(p.id || p.prescriptionId),
           uploadDate: p.uploadDate || new Date().toISOString(),
-          prescriptionUrl: p.prescriptionKey || '',
+          prescriptionUrl: p.prescriptionUrl || '',
           doctorName: p.doctorName || '',
           hospitalName: p.hospitalName || '',
           approvalStatus: 'pending' as const,

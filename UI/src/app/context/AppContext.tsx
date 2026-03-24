@@ -166,9 +166,7 @@ function mapApiPrescriptionToFrontend(apiPresc: any, slot?: any): Prescription {
   return {
     id: String(apiPresc.id || apiPresc.prescriptionId),
     uploadDate: apiPresc.uploadDate || new Date().toISOString(),
-    prescriptionUrl: apiPresc.prescriptionKey
-      ? `${BASE_URL}/${apiPresc.prescriptionKey}`
-      : (apiPresc.prescriptionUrl || ''),
+    prescriptionUrl: apiPresc.prescriptionUrl || '',
     doctorName: apiPresc.doctorName || '',
     hospitalName: apiPresc.hospitalName || '',
     approvalStatus,

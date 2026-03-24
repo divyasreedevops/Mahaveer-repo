@@ -42,7 +42,7 @@ export function PatientLogin() {
       setError('');
       await registerPatient(mobile, email || undefined);
       setStep('otp');
-      setResendTimer(30);
+      setResendTimer(60);
     } catch {
       // error shown via toast from context
     }
@@ -53,7 +53,7 @@ export function PatientLogin() {
     setIsResending(true);
     try {
       await registerPatient(mobile, email || undefined);
-      setResendTimer(30);
+      setResendTimer(60);
     } catch {
       // error shown via toast from context
     } finally {

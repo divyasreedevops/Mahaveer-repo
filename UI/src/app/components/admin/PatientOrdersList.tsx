@@ -168,7 +168,7 @@ export function PatientOrdersList() {
         patientId: p.patientId || '',
         patientName: patientsMap[p.patientId] || p.patientId || '',
         uploadDate: p.uploadDate || p.createdDate || '',
-        prescriptionUrl: p.prescriptionKey || p.prescriptionUrl || '',
+        prescriptionUrl: p.prescriptionUrl || '',
         doctorName: p.doctorName || '',
         hospitalName: p.hospitalName || '',
         status: statusOverride || p.status || p.prescriptionStatus || '',
