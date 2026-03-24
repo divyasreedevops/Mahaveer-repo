@@ -18,6 +18,7 @@ export const adminService = {
       const response = await apiClient.post('/Admin/ApproveKyc', {
         id: data.id,
         incomeLevel: data.incomeLevel,
+        discountPercentage: data.discountPercentage,
       });
       return {
         success: true,

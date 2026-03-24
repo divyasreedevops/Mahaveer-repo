@@ -54,8 +54,9 @@ export function ApprovalsList() {
   const loadData = async () => {
     setLoadingList(true);
     try {
-      const [pendingRaw, submittedRaw, levelsRaw] = await Promise.all([
-        api.patient.getByStatusdsdsds('Completed', 'Submitted').catch(() => [])
+      const [submittedRaw, levelsRaw] = await Promise.all([
+        api.patient.getByStatus('Completed', 'Submitted').catch(() => []),
+        api.common.getIncomeLevels().catch(() => []),
       ]);
 
       const mapPatient = (p: any, rawKycStatus: string): PendingPatientItem => {
@@ -105,7 +106,6 @@ export function ApprovalsList() {
       };
 
       const allMapped: PendingPatientItem[] = [
-        ...(pendingRaw || []).map((p: any) => mapPatient(p, 'Pending')),
         ...(submittedRaw || []).map((p: any) => mapPatient(p, 'Submitted')),
       ];
 
@@ -154,7 +154,7 @@ export function ApprovalsList() {
     setIsSubmitting(true);
     try {
       const dbId = parseInt(selectedPatient.id);
-      await api.admin.approveKyc({ id: dbId, incomeLevel });
+      await api.admin.approveKyc({ id: dbId, incomeLevel, discountPercentage });
       const approveRes = await api.admin.updateRegStatus({
         id: dbId,
         patientId: selectedPatient.patientId || generatePatientId(dbId),

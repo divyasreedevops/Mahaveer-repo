@@ -57,10 +57,10 @@ export function PatientDetailsForm() {
   const next = () => { if (validateStep()) setStep(s => Math.min(s + 1, 3)); };
   const back = () => setStep(s => Math.max(s - 1, 0));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateStep()) return;
-    submitKYC({ ...form, incomeDocument: docFile || new File([], 'demo-kyc.pdf') });
-    toast.success('Details submitted! Awaiting admin verification.');
+    let result: any = await submitKYC({ ...form, incomeDocument: docFile || new File([], 'demo-kyc.pdf') });
+    toast.success(result.message || 'Details submitted! Awaiting admin verification.');
   };
 
   const inputCls = 'border-gray-200 rounded-xl focus:border-blue-400 bg-white';

@@ -107,6 +107,8 @@ function mapApiPatientToFrontend(p: any): Patient {
     hospitalPartner: p.ngoPartner || null,
     criticalIllness: p.criticalIllness || null,
     illnessDetails: p.addedInfo || null,
+    IdCardCollected: guardianRelation,
+    PermanentFullAddress: `${p.streetAddress || ''}, ${p.city_or_District ? ', ' + p.city_or_District : ''}, ${p.state ? ', ' + p.state : ''}, ${p.pincode ? ' - ' + p.pincode : ''}, ${p.country ? ', ' + p.country : ''}`.trim()
   };
 }
 
@@ -605,7 +607,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!dbId) { toast.error('Patient DB ID not found'); return; }
     setIsLoading(true);
     try {
-      await api.admin.approveKyc({ id: dbId, incomeLevel });
+      await api.admin.approveKyc({ id: dbId, incomeLevel, discountPercentage });
       await api.admin.updateRegStatus({ id: dbId, patientId, registrationStatus: 'Approved' });
       setAllPatients(prev => prev.map(p => p.patientId === patientId ? { ...p, kycStatus: 'approved' as const, kycRejectionReason: null } : p));
       toast.success('KYC approved!');
