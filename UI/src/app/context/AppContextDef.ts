@@ -147,6 +147,7 @@ export interface Patient {
   criticalIllness?: string | null;
   illnessDetails?: string | null;
   IdCardCollected?: string | null;
+  KYCStatus?: string | null;
   PermanentFullAddress: string | null;
 }
 

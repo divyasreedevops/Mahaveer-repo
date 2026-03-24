@@ -108,6 +108,7 @@ function mapApiPatientToFrontend(p: any): Patient {
     criticalIllness: p.criticalIllness || null,
     illnessDetails: p.addedInfo || null,
     IdCardCollected: guardianRelation,
+    KYCStatus: 'Submitted',
     PermanentFullAddress: `${p.streetAddress || ''}, ${p.city_or_District ? ', ' + p.city_or_District : ''}, ${p.state ? ', ' + p.state : ''}, ${p.pincode ? ' - ' + p.pincode : ''}, ${p.country ? ', ' + p.country : ''}`.trim()
   };
 }
@@ -521,6 +522,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         hospitalPartner: data.hospitalPartner,
         criticalIllness: data.criticalIllness,
         illnessDetails: data.illnessDetails,
+        KYCStatus: 'Submitted',
+        PermanentFullAddress: `${data.streetAddress}, ${data.city}, ${data.state}, ${data.pinCode}, ${data.country}`,
       };
       setCurrentPatient(updated);
       localStorage.setItem('currentPatient', JSON.stringify(updated));
