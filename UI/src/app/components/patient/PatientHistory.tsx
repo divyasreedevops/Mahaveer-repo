@@ -2,7 +2,7 @@ import { useApp } from '@/app/context/AppContext';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
-import { ArrowLeft, Download, User, FileText, CheckCircle, Receipt, Clock, XCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Download, User, FileText, CheckCircle, Receipt, Clock, XCircle, AlertTriangle, History } from 'lucide-react';
 
 interface PatientHistoryProps {
   onBack: () => void;
@@ -15,6 +15,27 @@ export function PatientHistory({ onBack }: PatientHistoryProps) {
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const getPickupLabel = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'slot_booked':     return 'Slot Booked';
+      case 'collected':       return 'Medicine Collected';
+      case 'missing_medicine': return 'Missing Medicine';
+      case 'processed':       return 'Ready for Collection';
+      case 'awaiting_slot':   return 'Awaiting Slot';
+      default: return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+  };
+
+  const getPickupDot = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'collected':        return 'bg-green-500';
+      case 'missing_medicine': return 'bg-amber-500';
+      case 'processed':        return 'bg-blue-500';
+      case 'slot_booked':      return 'bg-blue-400';
+      default:                 return 'bg-gray-400';
+    }
   };
 
   const handleDownloadInvoice = (invoiceNumber: string) => {
@@ -108,17 +129,14 @@ export function PatientHistory({ onBack }: PatientHistoryProps) {
                     {prescription.approvalStatus === 'approved' && prescription.pickups.map(pickup => (
                       <div key={pickup.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${
-                            pickup.status === 'collected' ? 'bg-green-500' :
-                            pickup.status === 'missing_medicine' ? 'bg-amber-500' : 'bg-blue-500'
-                          }`}></div>
+                          <div className={`w-2 h-2 rounded-full ${getPickupDot(pickup.status)}`}></div>
                           <div>
-                            <p className="text-sm font-normal text-gray-800 capitalize">
-                              {pickup.status.replace('_', ' ')}
+                            <p className="text-sm font-normal text-gray-800">
+                              {getPickupLabel(pickup.status)}
                             </p>
                             {pickup.slotDate && (
                               <p className="text-xs text-gray-500 font-light">
-                                Collected on {formatDate(pickup.slotDate)}
+                                {pickup.status.toLowerCase() === 'collected' ? 'Collected on' : 'Slot on'} {formatDate(pickup.slotDate)}
                               </p>
                             )}
                           </div>

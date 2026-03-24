@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/app/context/AppContext';
 import { Button } from '@/app/components/ui/button';
@@ -16,6 +16,15 @@ export function PatientLogin() {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const t = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [resendTimer]);
 
   useEffect(() => {
     if (isAuthenticated && userType === 'patient') {
@@ -33,8 +42,22 @@ export function PatientLogin() {
       setError('');
       await registerPatient(mobile, email || undefined);
       setStep('otp');
+      setResendTimer(30);
     } catch {
       // error shown via toast from context
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      await registerPatient(mobile, email || undefined);
+      setResendTimer(30);
+    } catch {
+      // error shown via toast from context
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -129,6 +152,20 @@ export function PatientLogin() {
                 </p>
               </div>
               {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+              <div className="text-center">
+                {resendTimer > 0 ? (
+                  <p className="text-sm text-gray-400 font-light">Resend OTP in {resendTimer}s</p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={isResending}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-normal underline-offset-2 hover:underline disabled:opacity-50"
+                  >
+                    {isResending ? 'Sending...' : 'Resend OTP'}
+                  </button>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button
                   type="button" 

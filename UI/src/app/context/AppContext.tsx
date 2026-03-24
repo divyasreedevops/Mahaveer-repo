@@ -12,6 +12,13 @@ import {
   PrescriptionApprovalStatus,
   Prescription,
   Patient,
+  KYCFormData,
+  AnnualIncome,
+  INCOME_LABELS,
+  INCOME_DISCOUNT,
+  INCOME_LEVEL_MAP,
+  HOSPITAL_PARTNERS,
+  INDIAN_STATES,
 } from './AppContextDef';
 
 // Re-export types so existing imports from 'AppContext' keep working
@@ -26,8 +33,10 @@ export type {
   Prescription,
   Patient,
 };
+export type { KYCFormData, AnnualIncome };
+export { INCOME_LABELS, INCOME_DISCOUNT, INCOME_LEVEL_MAP, HOSPITAL_PARTNERS, INDIAN_STATES };
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5120';
 
 export function useApp() {
   const context = useContext(AppContext);
@@ -54,6 +63,20 @@ function mapKycStatus(s: string): 'pending' | 'approved' | 'rejected' {
 }
 
 function mapApiPatientToFrontend(p: any): Patient {
+  // Determine guardian info
+  let guardianName: string | null = null;
+  let guardianRelation: string | null = null;
+  let guardianMobile: string | null = null;
+  if (p.fathersName) {
+    guardianName = p.fathersName;
+    guardianRelation = 'Father';
+    guardianMobile = p.fathersMobileNumber || null;
+  } else if (p.mothersName) {
+    guardianName = p.mothersName;
+    guardianRelation = 'Mother';
+    guardianMobile = p.mothersMobileNumber || null;
+  }
+
   return {
     id: String(p.id || 0),
     patientId: p.patientId || `TEMP-${p.mobileNumber || p.mobile}`,
@@ -70,6 +93,20 @@ function mapApiPatientToFrontend(p: any): Patient {
     registrationStatus: p.registrationStatus || '',
     registrationDate: p.registrationDate || new Date().toISOString(),
     prescriptions: [],
+    gender: p.gender || null,
+    govtIdType: p.govtId || null,
+    guardianName,
+    guardianRelation,
+    guardianMobile,
+    annualFamilyIncome: p.annualIncome || null,
+    streetAddress: p.streetAddress || p.permanentFullAddress || null,
+    city: p.city_or_District || p.city || null,
+    state: p.state || null,
+    pinCode: p.pincode || p.pinCode || null,
+    country: p.country || null,
+    hospitalPartner: p.ngoPartner || null,
+    criticalIllness: p.criticalIllness || null,
+    illnessDetails: p.addedInfo || null,
   };
 }
 
@@ -320,7 +357,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const registerPatient = async (mobile: string, email?: string): Promise<void> => {
     setIsLoading(true);
     try {
-      await api.patient.register(mobile, email);
+      await api.patient.register(mobile);
       pendingMobileRef.current = mobile;
       pendingEmailRef.current = email || '';
       toast.success(`OTP sent to ${mobile}`);
@@ -428,22 +465,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ─── Patient ───────────────────────────────────────────────────────────────
 
-  const submitKYC = async (name: string, dob: string, aadhaar: string, file: File): Promise<void> => {
+  const submitKYC = async (data: KYCFormData): Promise<void> => {
     if (!currentPatient) return;
     setIsLoading(true);
     try {
+      // Build a single multipart/form-data payload for POST /Patient/Update-patients
       const formData = new FormData();
-      formData.append('fullName', name);
-      formData.append('aadharNumber', aadhaar.replace(/\s/g, ''));
-      formData.append('mobileNumber', currentPatient.mobile);
-      if (currentPatient.email) formData.append('email', currentPatient.email);
-      if (dob) formData.append('dob', dob);
-      if (file && file.size > 0) formData.append('kycDocument', file);
-      if (currentPatient.id && currentPatient.id !== '0') formData.append('id', currentPatient.id);
+      formData.append('id', currentPatient.id && currentPatient.id !== '0' ? currentPatient.id : '0');
       if (currentPatient.patientId) formData.append('patientId', currentPatient.patientId);
+      formData.append('fullName', data.name);
+      formData.append('govtId', data.govtIdType);
+      formData.append('govtIdNo', data.aadhaarNumber.replace(/\s/g, ''));
+      if (currentPatient.email) formData.append('email', currentPatient.email);
+      if (data.dateOfBirth) formData.append('dob', data.dateOfBirth);
+      if (data.gender) formData.append('gender', data.gender);
+      if (data.annualFamilyIncome) formData.append('annualIncome', data.annualFamilyIncome);
+      if (data.streetAddress) formData.append('streetAddress', data.streetAddress);
+      if (data.city) formData.append('city_or_District', data.city);
+      if (data.pinCode) formData.append('pincode', data.pinCode);
+      if (data.state) formData.append('state', data.state);
+      if (data.country) formData.append('country', data.country);
+      if (data.hospitalPartner) formData.append('ngoPartner', data.hospitalPartner);
+      if (data.criticalIllness) formData.append('criticalIllness', data.criticalIllness);
+      if (data.illnessDetails) formData.append('addedInfo', data.illnessDetails);
+      if (data.guardianRelation === 'Mother') {
+        formData.append('mothersName', data.guardianName);
+        formData.append('mothersMobileNumber', data.guardianMobile);
+      } else {
+        formData.append('fathersName', data.guardianName);
+        formData.append('fathersMobileNumber', data.guardianMobile);
+      }
+      if (data.incomeDocument && data.incomeDocument.size > 0) formData.append('kycDocument', data.incomeDocument);
 
-      await api.patient.saveInfo(formData);
-      const updated: Patient = { ...currentPatient, name, dateOfBirth: dob, aadhaarNumber: aadhaar, incomeDocumentUrl: 'kyc-submitted' };
+      await api.patient.updatePatients(formData);
+
+      const updated: Patient = {
+        ...currentPatient,
+        name: data.name,
+        dateOfBirth: data.dateOfBirth,
+        aadhaarNumber: data.aadhaarNumber,
+        incomeDocumentUrl: 'kyc-submitted',
+        gender: data.gender,
+        govtIdType: data.govtIdType,
+        guardianName: data.guardianName,
+        guardianRelation: data.guardianRelation,
+        guardianMobile: data.guardianMobile,
+        annualFamilyIncome: data.annualFamilyIncome,
+        streetAddress: data.streetAddress,
+        city: data.city,
+        state: data.state,
+        pinCode: data.pinCode,
+        country: data.country,
+        hospitalPartner: data.hospitalPartner,
+        criticalIllness: data.criticalIllness,
+        illnessDetails: data.illnessDetails,
+      };
       setCurrentPatient(updated);
       localStorage.setItem('currentPatient', JSON.stringify(updated));
       toast.success('KYC submitted successfully!');

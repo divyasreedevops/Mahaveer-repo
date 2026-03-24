@@ -169,11 +169,11 @@ export function InventoryManagement() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'tablet': return 'bg-blue-500';
-      case 'capsule': return 'bg-green-500';
-      case 'injection': return 'bg-purple-500';
-      case 'syrup': return 'bg-orange-500';
-      default: return 'bg-gray-500';
+      case 'tablet':    return 'bg-blue-100 text-blue-700 border-blue-200 font-normal';
+      case 'capsule':   return 'bg-green-100 text-green-700 border-green-200 font-normal';
+      case 'injection': return 'bg-purple-100 text-purple-700 border-purple-200 font-normal';
+      case 'syrup':     return 'bg-orange-100 text-orange-700 border-orange-200 font-normal';
+      default:          return 'bg-gray-100 text-gray-500 border-gray-200 font-normal';
     }
   };
 

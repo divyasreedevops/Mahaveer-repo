@@ -31,7 +31,7 @@ export function PrescriptionApprovalsList() {
     try {
       const [prescRaw, patientsRaw] = await Promise.all([
         api.prescription.getByStatus('PENDING').catch(() => []),
-        api.patient.getByStatus('Completed', 'Approved').catch(() => []),
+        api.patient.getByStatus('Approved', 'Approved').catch(() => []),
       ]);
       const patientsMap: Record<string, string> = {};
       (patientsRaw || []).forEach((p: any) => { patientsMap[p.patientId] = p.fullName || p.patientId; });

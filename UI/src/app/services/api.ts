@@ -44,6 +44,7 @@ export const api = {
       return apiFetch<any[]>(`/Patient/GetPatientsByStatus?${params.toString()}`);
     },
     saveInfo: (formData: FormData) => apiFetch<any>('/Patient/SavePatientInfo', { method: 'POST', body: formData }),
+    updatePatients: (formData: FormData) => apiFetch<any>('/Patient/Update-patients', { method: 'POST', body: formData }),
   },
   admin: {
     approveKyc: (data: any) => apiFetch<any>('/Admin/ApproveKyc', { method: 'POST', body: JSON.stringify(data) }),

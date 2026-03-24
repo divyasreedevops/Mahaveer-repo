@@ -15,7 +15,10 @@ export const adminService = {
    */
   async approveKyc(data: ApproveKycRequest): Promise<ApiResponse<void>> {
     try {
-      const response = await apiClient.post('/Admin/ApproveKyc', { id: data.id, incomeLevel: data.incomeLevel, discountPercentage: data.discountPercentage });
+      const response = await apiClient.post('/Admin/ApproveKyc', {
+        id: data.id,
+        incomeLevel: data.incomeLevel,
+      });
       return {
         success: true,
         message: response.data.message || 'KYC approved successfully',

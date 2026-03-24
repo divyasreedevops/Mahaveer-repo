@@ -2,6 +2,47 @@ import { createContext } from 'react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export type AnnualIncome = 'below_50000' | '50000_100000' | '100000_200000' | 'above_200000' | null;
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+export const INCOME_LABELS: Record<string, string> = {
+  below_50000: 'Below ₹50,000',
+  '50000_100000': '₹50,000 – ₹1,00,000',
+  '100000_200000': '₹1,00,000 – ₹2,00,000',
+  above_200000: 'Above ₹2,00,000',
+};
+
+export const INCOME_DISCOUNT: Record<string, number> = {
+  below_50000: 80,
+  '50000_100000': 60,
+  '100000_200000': 40,
+  above_200000: 20,
+};
+
+export const INCOME_LEVEL_MAP: Record<string, 'low' | 'medium' | 'high'> = {
+  below_50000: 'low',
+  '50000_100000': 'low',
+  '100000_200000': 'medium',
+  above_200000: 'high',
+};
+
+export const HOSPITAL_PARTNERS = [
+  'MNJ Institute of Oncology & Regional Cancer Centre',
+  'Apollo Cancer Centre',
+  'Omega Hospitals',
+  'Care Hospitals',
+  'AIIMS Hyderabad',
+];
+
+export const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
+  'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
+  'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan',
+  'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Delhi', 'Jammu & Kashmir', 'Ladakh',
+];
+
 export interface Medicine {
   id: string;
   name: string;
@@ -91,6 +132,41 @@ export interface Patient {
   registrationStatus: string;
   registrationDate: string;
   prescriptions: Prescription[];
+  gender?: 'Male' | 'Female' | null;
+  govtIdType?: string | null;
+  guardianName?: string | null;
+  guardianRelation?: string | null;
+  guardianMobile?: string | null;
+  annualFamilyIncome?: AnnualIncome;
+  streetAddress?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pinCode?: string | null;
+  country?: string | null;
+  hospitalPartner?: string | null;
+  criticalIllness?: string | null;
+  illnessDetails?: string | null;
+}
+
+export interface KYCFormData {
+  name: string;
+  dateOfBirth: string;
+  gender: 'Male' | 'Female';
+  govtIdType: string;
+  aadhaarNumber: string;
+  incomeDocument: File;
+  annualFamilyIncome: AnnualIncome;
+  guardianName: string;
+  guardianRelation: 'Father' | 'Mother' | 'Guardian';
+  guardianMobile: string;
+  streetAddress: string;
+  city: string;
+  pinCode: string;
+  state: string;
+  country: string;
+  hospitalPartner: string;
+  criticalIllness: string;
+  illnessDetails: string;
 }
 
 export interface AppContextType {
@@ -103,7 +179,7 @@ export interface AppContextType {
   registerPatient: (mobile: string, email?: string) => Promise<void>;
   verifyOTP: (otp: string) => Promise<boolean>;
   logout: () => void;
-  submitKYC: (name: string, dob: string, aadhaar: string, file: File) => Promise<void>;
+  submitKYC: (data: KYCFormData) => Promise<void>;
   uploadPrescription: (file: File, doctorName: string, hospitalName: string) => Promise<void>;
   bookPickupSlot: (patientId: string, prescriptionId: string, pickupId: string, date: string, time: string) => Promise<void>;
   reschedulePickup: (patientId: string, prescriptionId: string, pickupId: string, newDate: string, newTime: string) => Promise<void>;
