@@ -106,20 +106,11 @@ export function InvoicePaymentModal({ patientId, prescriptionId, pickupId, invoi
                       </tr>
                     ))}
                     {invoice.items.length === 0 && (
-                      <>
-                        <tr>
-                          <td className="px-4 py-3"><p className="font-normal text-gray-800">Paracetamol Plus</p></td>
-                          <td className="px-4 py-3 text-right text-gray-700 font-light">₹500</td>
-                          <td className="px-4 py-3 text-right text-red-500 font-light">-₹250</td>
-                          <td className="px-4 py-3 text-right text-gray-800 font-normal">₹250</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-3"><p className="font-normal text-gray-800">Generic Antibiotic</p></td>
-                          <td className="px-4 py-3 text-right text-gray-700 font-light">₹4500</td>
-                          <td className="px-4 py-3 text-right text-red-500 font-light">-₹2250</td>
-                          <td className="px-4 py-3 text-right text-gray-800 font-normal">₹2250</td>
-                        </tr>
-                      </>
+                      <tr>
+                        <td colSpan={4} className="px-4 py-6 text-center text-gray-500 font-light">
+                          No items in the invoice.
+                        </td>
+                      </tr>
                     )}
                   </tbody>
                 </table>

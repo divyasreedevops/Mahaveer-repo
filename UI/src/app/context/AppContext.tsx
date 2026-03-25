@@ -405,7 +405,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const fetched = await api.patient.getByMobile(mobile);
           patient = mapApiPatientToFrontend(fetched);
         } catch {
-          patient = { id: '0', patientId: res.patientId, mobile, email: null, name: '', dateOfBirth: '', aadhaarNumber: null, incomeDocumentUrl: null, incomeLevel: null, discountPercentage: 0, kycStatus: 'pending', kycRejectionReason: null, registrationStatus: '', registrationDate: new Date().toISOString(), prescriptions: [] };
+          patient = { id: '0', patientId: res.patientId, mobile, email: null, name: '', dateOfBirth: '', aadhaarNumber: null, incomeDocumentUrl: null, incomeLevel: null, discountPercentage: 0, kycStatus: 'pending', kycRejectionReason: null, registrationStatus: '', registrationDate: new Date().toISOString(), prescriptions: [], PermanentFullAddress: null };
         }
         localStorage.setItem('userType', 'patient');
         localStorage.setItem('currentPatient', JSON.stringify(patient));
@@ -468,7 +468,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const submitKYC = async (data: KYCFormData): Promise<void> => {
     if (!currentPatient) return;
-    setIsLoading(true);
     try {
       // Build a single multipart/form-data payload for POST /Patient/Update-patients
       const formData = new FormData();
@@ -520,8 +519,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         hospitalPartner: data.hospitalPartner,
         criticalIllness: data.criticalIllness,
         illnessDetails: data.illnessDetails,
+        IdCardCollected: data.guardianRelation,
         KYCStatus: 'Submitted',
-        PermanentFullAddress: `${data.streetAddress}, ${data.city}, ${data.state}, ${data.pinCode}, ${data.country}`,
+        PermanentFullAddress: `${data.streetAddress || ''}, ${data.city ? ', ' + data.city : ''}, ${data.state ? ', ' + data.state : ''}, ${data.pinCode ? ' - ' + data.pinCode : ''}, ${data.country ? ', ' + data.country : ''}`.trim()
+        
       };
       setCurrentPatient(updated);
       localStorage.setItem('currentPatient', JSON.stringify(updated));
@@ -529,8 +530,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       toast.error(err.message || 'Failed to save details');
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
