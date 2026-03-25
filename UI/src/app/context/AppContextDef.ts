@@ -28,6 +28,7 @@ export const INCOME_LEVEL_MAP: Record<string, 'low' | 'medium' | 'high'> = {
 };
 
 export const HOSPITAL_PARTNERS = [
+  'Mahaveer Cancer Care Foundation',
   'MNJ Institute of Oncology & Regional Cancer Centre',
   'Apollo Cancer Centre',
   'Omega Hospitals',
