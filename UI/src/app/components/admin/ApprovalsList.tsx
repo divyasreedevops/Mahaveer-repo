@@ -2,15 +2,57 @@ import { useState, useEffect } from 'react';
 import { api } from '@/app/services/api';
 import { toast } from 'sonner';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/app/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/app/components/ui/table';
 import { Badge } from '@/app/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/app/components/ui/dialog';
 import { Label } from '@/app/components/ui/label';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { CheckCircle, XCircle, Clock, User, Phone, Mail, FileText, Calendar, CreditCard, Loader2, MapPin, Heart, Users, Building2, Percent } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  FileText,
+  Calendar,
+  CreditCard,
+  Loader2,
+  MapPin,
+  Heart,
+  Users,
+  Building2,
+  Percent,
+} from 'lucide-react';
 import type { Patient } from '@/app/context/AppContext';
 import { INCOME_LABELS, INCOME_DISCOUNT } from '@/app/context/AppContextDef';
 
@@ -37,16 +79,18 @@ const generatePatientId = (dbId: number): string => {
   return `PAT-${year}-${String(dbId).padStart(4, '0')}`;
 };
 
-export function ApprovalsList() {
+export function ApprovalsList({ child }: { child?: boolean }) {
   const [pendingApprovals, setPendingApprovals] = useState<PendingPatientItem[]>([]);
   const [incomeOptions, setIncomeOptions] = useState<string[]>(['Low', 'Medium', 'High']);
-  const [incomeLevelsData, setIncomeLevelsData] = useState<{ name: string; discount: number }[]>([]);
+  const [incomeLevelsData, setIncomeLevelsData] = useState<{ name: string; discount: number }[]>(
+    []
+  );
   const [loadingList, setLoadingList] = useState(true);
-  
+
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [rejectingPatient, setRejectingPatient] = useState<Patient | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
-  
+
   const [incomeLevel, setIncomeLevel] = useState<string>('Medium');
   const [discountPercentage, setDiscountPercentage] = useState<number>(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,7 +123,7 @@ export function ApprovalsList() {
           email: p.email || null,
           name: p.fullName || '',
           dateOfBirth: p.dob || '',
-          aadhaarNumber: p.aadharNumber || null,
+          aadhaarNumber: p.govtIdNo || null,
           incomeDocumentUrl: p.kycDocumentUrl || null,
           incomeLevel: null,
           discountPercentage: p.discountPercentage || 0,
@@ -111,22 +155,24 @@ export function ApprovalsList() {
 
       // Deduplicate by id
       const seen = new Set<string>();
-      const deduped = allMapped.filter(p => {
+      const deduped = allMapped.filter((p) => {
         if (seen.has(p.id)) return false;
         seen.add(p.id);
         return true;
       });
 
       // Sort by registrationDate descending (newest first)
-      deduped.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
+      deduped.sort(
+        (a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
+      );
 
       setPendingApprovals(deduped);
       if (levelsRaw && Array.isArray(levelsRaw) && levelsRaw.length > 0) {
         const levelObjects = levelsRaw.map((l: any) => ({
-          name: typeof l === 'string' ? l : (l.incomeLevelName || l.name || l.label || String(l)),
-          discount: typeof l === 'object' ? (l.discountPercentage || 0) : 0,
+          name: typeof l === 'string' ? l : l.incomeLevelName || l.name || l.label || String(l),
+          discount: typeof l === 'object' ? l.discountPercentage || 0 : 0,
         }));
-        const levels = levelObjects.map(l => l.name);
+        const levels = levelObjects.map((l) => l.name);
         setIncomeLevelsData(levelObjects);
         setIncomeOptions(levels);
         setIncomeLevel(levels[0]);
@@ -139,7 +185,9 @@ export function ApprovalsList() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleApproveClick = (patient: PendingPatientItem) => {
     setSelectedPatient(patient);
@@ -160,7 +208,10 @@ export function ApprovalsList() {
         patientId: selectedPatient.patientId || generatePatientId(dbId),
         registrationStatus: 'Approved',
       });
-      toast.success(approveRes?.message || `KYC approved for ${selectedPatient.name || selectedPatient.patientId}`);
+      toast.success(
+        approveRes?.message ||
+          `KYC approved for ${selectedPatient.name || selectedPatient.patientId}`
+      );
       setSelectedPatient(null);
       loadData();
     } catch (err: any) {
@@ -182,8 +233,15 @@ export function ApprovalsList() {
       // In a real app we would use rejectPatientKYC, but since we are interacting
       // with the API directly here to mimic the approve flow:
       const rejectDbId = parseInt(rejectingPatient.id);
-      const rejectRes = await api.admin.updateRegStatus({ id: rejectDbId, patientId: rejectingPatient.patientId || generatePatientId(rejectDbId), registrationStatus: 'Rejected' });
-      toast.success(rejectRes?.message || `KYC rejected for ${rejectingPatient.name || rejectingPatient.patientId}`);
+      const rejectRes = await api.admin.updateRegStatus({
+        id: rejectDbId,
+        patientId: rejectingPatient.patientId || generatePatientId(rejectDbId),
+        registrationStatus: 'Rejected',
+      });
+      toast.success(
+        rejectRes?.message ||
+          `KYC rejected for ${rejectingPatient.name || rejectingPatient.patientId}`
+      );
       setRejectingPatient(null);
       loadData();
     } catch (err: any) {
@@ -195,7 +253,7 @@ export function ApprovalsList() {
 
   const handleIncomeLevelChange = (value: string) => {
     setIncomeLevel(value);
-    const found = incomeLevelsData.find(l => l.name === value);
+    const found = incomeLevelsData.find((l) => l.name === value);
     if (found) {
       setDiscountPercentage(found.discount);
     } else {
@@ -213,17 +271,19 @@ export function ApprovalsList() {
 
   return (
     <Card className="border-gray-100 shadow-lg rounded-2xl">
-      <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <Clock className="w-6 h-6 text-purple-600" />
-          <CardTitle className="text-gray-800 font-normal">Pending Approvals</CardTitle>
-        </div>
-        <CardDescription className="text-gray-500 font-light">
-          Review and approve patient registrations
-        </CardDescription>
-      </CardHeader>
+      {!child && (
+        <CardHeader>
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-gray-800 font-normal">Pending Approvals</CardTitle>
+          </div>
+          <CardDescription className="text-gray-500 font-light">
+            Review and approve patient registrations
+          </CardDescription>
+        </CardHeader>
+      )}
       <CardContent>
-      {loadingList ? (
+        {loadingList ? (
           <div className="flex items-center justify-center py-20 gap-3 text-gray-400">
             <Loader2 className="w-6 h-6 animate-spin" />
             <span className="font-light">Loading pending approvals...</span>
@@ -242,12 +302,17 @@ export function ApprovalsList() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-base">{patient.name || 'Unnamed Patient'}</CardTitle>
+                        <CardTitle className="text-base">
+                          {patient.name || 'Unnamed Patient'}
+                        </CardTitle>
                         <CardDescription className="text-xs mt-1">
                           {patient.patientId}
                         </CardDescription>
                       </div>
-                    <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-normal text-xs"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-normal text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pending
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 pb-4">
@@ -265,9 +330,9 @@ export function ApprovalsList() {
                       {patient.incomeDocumentUrl && (
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-muted-foreground" />
-                          <a 
-                            href={patient.incomeDocumentUrl} 
-                            target="_blank" 
+                          <a
+                            href={patient.incomeDocumentUrl}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-purple-600 hover:underline"
                           >
@@ -323,45 +388,71 @@ export function ApprovalsList() {
                 <div className="text-right pr-2">Actions</div>
               </div>
               <div className="mt-2 space-y-3">
-                {pendingApprovals.map(patient => (
-                   <details
+                {pendingApprovals.map((patient) => (
+                  <details
                     key={patient.id}
                     className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden group"
                   >
                     <summary className="list-none cursor-pointer px-6 py-4 focus:outline-none select-none">
                       <div className="grid grid-cols-5 gap-6 items-center">
                         <div className="flex flex-col min-w-0" title={patient.name}>
-                          <p className="font-bold text-gray-900 text-sm truncate">{patient.name || '—'}</p>
-                          <p className="text-[10px] text-gray-400 font-medium tracking-tight uppercase">{patient.patientId}</p>
+                          <p className="font-bold text-gray-900 text-sm truncate">
+                            {patient.name || '—'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 font-medium tracking-tight uppercase">
+                            {patient.patientId}
+                          </p>
                           <div className="mt-1">
                             {patient.rawKycStatus === 'Submitted' ? (
-                              <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-normal text-[9px] px-1 py-0"><FileText className="w-2.5 h-2.5 mr-0.5" />Submitted</Badge>
+                              <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-normal text-[9px] px-1 py-0">
+                                <FileText className="w-2.5 h-2.5 mr-0.5" />
+                                Submitted
+                              </Badge>
                             ) : (
-                              <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-normal text-[9px] px-1 py-0"><Clock className="w-2.5 h-2.5 mr-0.5" />Pending</Badge>
+                              <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-normal text-[9px] px-1 py-0">
+                                <Clock className="w-2.5 h-2.5 mr-0.5" />
+                                Pending
+                              </Badge>
                             )}
                           </div>
                         </div>
                         <div className="flex flex-col min-w-0" title={patient.guardianName || ''}>
-                          <p className="text-sm font-medium text-gray-800 truncate">{patient.guardianName || patient.mobile}</p>
-                          <p className="text-[11px] text-blue-500 font-medium truncate">{patient.guardianMobile || patient.mobile}</p>
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {patient.guardianName || patient.mobile}
+                          </p>
+                          <p className="text-[11px] text-blue-500 font-medium truncate">
+                            {patient.guardianMobile || patient.mobile}
+                          </p>
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">{patient.govtIdType?.split(' ')[0] || 'ID'}</p>
+                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">
+                            {patient.govtIdType?.split(' ')[0] || 'ID'}
+                          </p>
                           <p className="text-xs font-mono text-gray-600 truncate">
                             ****{patient.aadhaarNumber?.replace(/\s/g, '').slice(-4) || '----'}
                           </p>
                         </div>
-                        <div className="flex flex-col min-w-0" title={`${patient.city}, ${patient.state}`}>
+                        <div
+                          className="flex flex-col min-w-0"
+                          title={`${patient.city}, ${patient.state}`}
+                        >
                           <p className="text-xs text-gray-700 font-medium truncate">
-                            {patient.city || '—'}{patient.state ? `, ${patient.state}` : ''}
+                            {patient.city || '—'}
+                            {patient.state ? `, ${patient.state}` : ''}
                           </p>
                         </div>
-                        <div className="flex justify-end items-center gap-2 pr-2" onClick={e => e.stopPropagation()}>
+                        <div
+                          className="flex justify-end items-center gap-2 pr-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {patient.rawKycStatus === 'Submitted' ? (
                             <>
                               <Button
                                 size="sm"
-                                onClick={(e) => { e.preventDefault(); handleApproveClick(patient); }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleApproveClick(patient);
+                                }}
                                 className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 px-4 text-[11px] font-bold"
                               >
                                 Approve
@@ -369,7 +460,10 @@ export function ApprovalsList() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={(e) => { e.preventDefault(); handleRejectClick(patient); }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleRejectClick(patient);
+                                }}
                                 className="border-red-200 text-red-500 hover:bg-red-50 rounded-lg h-8 px-4 text-[11px] font-medium"
                               >
                                 Reject
@@ -385,26 +479,40 @@ export function ApprovalsList() {
                     <div className="px-6 pb-6 pt-2 bg-gray-50/30 border-t border-gray-100/50 grid grid-cols-2 gap-8">
                       <div className="space-y-4">
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Identification & Socio-Economic</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                            Identification & Socio-Economic
+                          </p>
                           <div className="space-y-1.5 text-xs">
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">Full ID Type:</span>
-                              <span className="font-medium text-gray-900">{patient.govtIdType || '—'}</span>
+                              <span className="font-medium text-gray-900">
+                                {patient.govtIdType || '—'}
+                              </span>
                             </div>
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">ID Number:</span>
-                              <span className="font-mono text-gray-900">{patient.aadhaarNumber || '—'}</span>
+                              <span className="font-mono text-gray-900">
+                                {patient.aadhaarNumber || '—'}
+                              </span>
                             </div>
                             {patient.annualFamilyIncome && (
                               <div className="grid grid-cols-[140px_1fr] gap-2">
                                 <span className="text-gray-500">Annual Income:</span>
-                                <span className="font-bold text-purple-700">{INCOME_LABELS[patient.annualFamilyIncome as string] || patient.annualFamilyIncome}</span>
+                                <span className="font-bold text-purple-700">
+                                  {INCOME_LABELS[patient.annualFamilyIncome as string] ||
+                                    patient.annualFamilyIncome}
+                                </span>
                               </div>
                             )}
                             {patient.incomeDocumentUrl && (
                               <div className="grid grid-cols-[140px_1fr] gap-2">
                                 <span className="text-gray-500">Income Doc:</span>
-                                <a href={patient.incomeDocumentUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline flex items-center gap-1">
+                                <a
+                                  href={patient.incomeDocumentUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-purple-600 hover:underline flex items-center gap-1"
+                                >
                                   <FileText className="w-3 h-3" /> View
                                 </a>
                               </div>
@@ -412,32 +520,46 @@ export function ApprovalsList() {
                           </div>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Patient Demographics</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                            Patient Demographics
+                          </p>
                           <div className="space-y-1.5 text-xs">
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">Gender:</span>
-                              <span className="font-medium text-gray-900">{patient.gender || '—'}</span>
+                              <span className="font-medium text-gray-900">
+                                {patient.gender || '—'}
+                              </span>
                             </div>
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">Date of Birth:</span>
-                              <span className="font-medium text-gray-900">{patient.dateOfBirth ? formatDateToDDMMYYYY(patient.dateOfBirth) : '—'}</span>
+                              <span className="font-medium text-gray-900">
+                                {patient.dateOfBirth
+                                  ? formatDateToDDMMYYYY(patient.dateOfBirth)
+                                  : '—'}
+                              </span>
                             </div>
                           </div>
                         </div>
                         {(patient.criticalIllness || patient.hospitalPartner) && (
                           <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Medical Info</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                              Medical Info
+                            </p>
                             <div className="space-y-1.5 text-xs">
                               {patient.criticalIllness && (
                                 <div className="grid grid-cols-[140px_1fr] gap-2">
                                   <span className="text-gray-500">Diagnosis:</span>
-                                  <span className="font-medium text-gray-900">{patient.criticalIllness}</span>
+                                  <span className="font-medium text-gray-900">
+                                    {patient.criticalIllness}
+                                  </span>
                                 </div>
                               )}
                               {patient.hospitalPartner && (
                                 <div className="grid grid-cols-[140px_1fr] gap-2">
                                   <span className="text-gray-500">Hospital:</span>
-                                  <span className="font-medium text-gray-900">{patient.hospitalPartner}</span>
+                                  <span className="font-medium text-gray-900">
+                                    {patient.hospitalPartner}
+                                  </span>
                                 </div>
                               )}
                             </div>
@@ -446,40 +568,63 @@ export function ApprovalsList() {
                       </div>
                       <div className="space-y-4">
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Guardian & Contact Details</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                            Guardian & Contact Details
+                          </p>
                           <div className="space-y-1.5 text-xs">
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">Primary Guardian:</span>
-                              <span className="font-medium text-gray-900">{patient.guardianName || '—'}{patient.guardianRelation ? ` (${patient.guardianRelation})` : ''}</span>
+                              <span className="font-medium text-gray-900">
+                                {patient.guardianName || '—'}
+                                {patient.guardianRelation ? ` (${patient.guardianRelation})` : ''}
+                              </span>
                             </div>
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">Mobile Number:</span>
-                              <span className="font-bold text-blue-600">{patient.guardianMobile || patient.mobile}</span>
+                              <span className="font-bold text-blue-600">
+                                {patient.guardianMobile || patient.mobile}
+                              </span>
                             </div>
                             {patient.email && (
                               <div className="grid grid-cols-[140px_1fr] gap-2">
                                 <span className="text-gray-500">Email:</span>
-                                <span className="font-medium text-gray-900 truncate">{patient.email}</span>
+                                <span className="font-medium text-gray-900 truncate">
+                                  {patient.email}
+                                </span>
                               </div>
                             )}
                           </div>
                         </div>
                         {(patient.city || patient.state || patient.streetAddress) && (
                           <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Full Residential Address</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                              Full Residential Address
+                            </p>
                             <div className="text-xs leading-relaxed text-gray-800 font-medium">
                               {patient.streetAddress && <p>{patient.streetAddress}</p>}
-                              <p>{[patient.city, patient.state, patient.pinCode].filter(Boolean).join(', ')}</p>
-                              {patient.country && <p className="text-[10px] text-gray-400 uppercase tracking-tight mt-1">{patient.country}</p>}
+                              <p>
+                                {[patient.city, patient.state, patient.pinCode]
+                                  .filter(Boolean)
+                                  .join(', ')}
+                              </p>
+                              {patient.country && (
+                                <p className="text-[10px] text-gray-400 uppercase tracking-tight mt-1">
+                                  {patient.country}
+                                </p>
+                              )}
                             </div>
                           </div>
                         )}
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Registration</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                            Registration
+                          </p>
                           <div className="space-y-1.5 text-xs">
                             <div className="grid grid-cols-[140px_1fr] gap-2">
                               <span className="text-gray-500">Registered:</span>
-                              <span className="font-medium text-gray-900">{new Date(patient.registrationDate).toLocaleDateString()}</span>
+                              <span className="font-medium text-gray-900">
+                                {new Date(patient.registrationDate).toLocaleDateString()}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -505,7 +650,9 @@ export function ApprovalsList() {
           <div className="space-y-4">
             {selectedPatient && (
               <div className="bg-gray-50 rounded-xl p-4 space-y-1 text-sm border border-gray-100">
-                <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">Child Information</p>
+                <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">
+                  Child Information
+                </p>
                 <div className="flex items-start gap-2">
                   <User className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                   <span className="text-gray-500 shrink-0">Name:</span>
@@ -516,7 +663,9 @@ export function ApprovalsList() {
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                       <span className="text-gray-500 shrink-0">DOB:</span>
-                      <span className="text-gray-800 font-medium">{formatDateToDDMMYYYY(selectedPatient.dateOfBirth)}</span>
+                      <span className="text-gray-800 font-medium">
+                        {formatDateToDDMMYYYY(selectedPatient.dateOfBirth)}
+                      </span>
                     </div>
                   )}
                   {selectedPatient.gender && (
@@ -529,67 +678,108 @@ export function ApprovalsList() {
                 </div>
                 <div className="flex items-start gap-2">
                   <CreditCard className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-                  <span className="text-gray-500 shrink-0">{selectedPatient.govtIdType || 'Govt ID'}:</span>
-                  <span className="text-gray-800 font-medium">{selectedPatient.aadhaarNumber || '—'}</span>
+                  <span className="text-gray-500 shrink-0">
+                    {selectedPatient.govtIdType || 'Govt ID'}:
+                  </span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedPatient.aadhaarNumber || '—'}
+                  </span>
                 </div>
                 {selectedPatient.incomeDocumentUrl && (
                   <div className="flex items-center gap-2 text-sm">
                     <FileText className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-500">Income Doc:</span>
-                    <a href={selectedPatient.incomeDocumentUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">View Document</a>
+                    <a
+                      href={selectedPatient.incomeDocumentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 hover:underline"
+                    >
+                      View Document
+                    </a>
                   </div>
                 )}
 
-                <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mt-3 mb-1">Guardian & Contact</p>
+                <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mt-3 mb-1">
+                  Guardian & Contact
+                </p>
                 <div className="flex items-start gap-2">
                   <Users className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-                  <span className="text-gray-500 shrink-0">{selectedPatient.guardianRelation || 'Guardian'}:</span>
-                  <span className="text-gray-800 font-medium">{selectedPatient.guardianName || '—'}</span>
+                  <span className="text-gray-500 shrink-0">
+                    {selectedPatient.guardianRelation || 'Guardian'}:
+                  </span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedPatient.guardianName || '—'}
+                  </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Phone className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                   <span className="text-gray-500 shrink-0">Mobile:</span>
-                  <span className="text-gray-800 font-medium">{selectedPatient.guardianMobile || selectedPatient.mobile}</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedPatient.guardianMobile || selectedPatient.mobile}
+                  </span>
                 </div>
                 {selectedPatient.annualFamilyIncome && (
                   <div className="flex items-start gap-2">
                     <Percent className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                     <span className="text-gray-500 shrink-0">Annual Income:</span>
-                    <span className="text-gray-800 font-medium">{INCOME_LABELS[selectedPatient.annualFamilyIncome as string] || selectedPatient.annualFamilyIncome}</span>
+                    <span className="text-gray-800 font-medium">
+                      {INCOME_LABELS[selectedPatient.annualFamilyIncome as string] ||
+                        selectedPatient.annualFamilyIncome}
+                    </span>
                   </div>
                 )}
 
                 {(selectedPatient.city || selectedPatient.state) && (
                   <>
-                    <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mt-3 mb-1">Address</p>
+                    <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mt-3 mb-1">
+                      Address
+                    </p>
                     {selectedPatient.streetAddress && (
                       <div className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                         <span className="text-gray-500 shrink-0">Street:</span>
-                        <span className="text-gray-800 font-medium">{selectedPatient.streetAddress}</span>
+                        <span className="text-gray-800 font-medium">
+                          {selectedPatient.streetAddress}
+                        </span>
                       </div>
                     )}
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                       <span className="text-gray-500 shrink-0">Location:</span>
-                      <span className="text-gray-800 font-medium">{[selectedPatient.city, selectedPatient.state, selectedPatient.pinCode, selectedPatient.country].filter(Boolean).join(', ')}</span>
+                      <span className="text-gray-800 font-medium">
+                        {[
+                          selectedPatient.city,
+                          selectedPatient.state,
+                          selectedPatient.pinCode,
+                          selectedPatient.country,
+                        ]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </span>
                     </div>
                   </>
                 )}
 
                 {selectedPatient.criticalIllness && (
                   <>
-                    <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mt-3 mb-1">Medical Info</p>
+                    <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mt-3 mb-1">
+                      Medical Info
+                    </p>
                     <div className="flex items-start gap-2">
                       <Heart className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                       <span className="text-gray-500 shrink-0">Illness:</span>
-                      <span className="text-gray-800 font-medium">{selectedPatient.criticalIllness}</span>
+                      <span className="text-gray-800 font-medium">
+                        {selectedPatient.criticalIllness}
+                      </span>
                     </div>
                     {selectedPatient.hospitalPartner && (
                       <div className="flex items-start gap-2">
                         <Building2 className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                         <span className="text-gray-500 shrink-0">Hospital:</span>
-                        <span className="text-gray-800 font-medium">{selectedPatient.hospitalPartner}</span>
+                        <span className="text-gray-800 font-medium">
+                          {selectedPatient.hospitalPartner}
+                        </span>
                       </div>
                     )}
                   </>
@@ -598,20 +788,33 @@ export function ApprovalsList() {
             )}
 
             <div className="space-y-3 border border-purple-100 rounded-xl p-4 bg-purple-50/30">
-              <p className="text-sm font-medium text-purple-700 flex items-center gap-2"><Percent className="w-4 h-4" />Set Subsidy Discount</p>
-              {selectedPatient?.annualFamilyIncome && INCOME_DISCOUNT[selectedPatient.annualFamilyIncome as string] !== undefined && (
-                <p className="text-xs text-gray-500">
-                  Based on declared income ({INCOME_LABELS[selectedPatient.annualFamilyIncome as string]}), suggested discount is <strong>{INCOME_DISCOUNT[selectedPatient.annualFamilyIncome as string]}%</strong>
-                </p>
-              )}
+              <p className="text-sm font-medium text-purple-700 flex items-center gap-2">
+                <Percent className="w-4 h-4" />
+                Set Subsidy Discount
+              </p>
+              {selectedPatient?.annualFamilyIncome &&
+                INCOME_DISCOUNT[selectedPatient.annualFamilyIncome as string] !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Based on declared income (
+                    {INCOME_LABELS[selectedPatient.annualFamilyIncome as string]}), suggested
+                    discount is{' '}
+                    <strong>
+                      {INCOME_DISCOUNT[selectedPatient.annualFamilyIncome as string]}%
+                    </strong>
+                  </p>
+                )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-gray-600">Income Level</Label>
                   <Select value={incomeLevel} onValueChange={handleIncomeLevelChange}>
-                    <SelectTrigger className="rounded-lg border-gray-200 text-sm"><SelectValue placeholder="Select income level" /></SelectTrigger>
+                    <SelectTrigger className="rounded-lg border-gray-200 text-sm">
+                      <SelectValue placeholder="Select income level" />
+                    </SelectTrigger>
                     <SelectContent>
                       {incomeOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -631,11 +834,32 @@ export function ApprovalsList() {
             </div>
           </div>
           <DialogFooter>
-            <Button size="sm" variant="outline" onClick={() => setSelectedPatient(null)} disabled={isSubmitting}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectedPatient(null)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button size="sm" variant="default" onClick={handleApproveConfirm} disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700">
-              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin mr-1" />Approving...</> : <><CheckCircle className="w-4 h-4 mr-1" />Approve</>}
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleApproveConfirm}
+              disabled={isSubmitting}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Approve
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -647,7 +871,8 @@ export function ApprovalsList() {
           <DialogHeader>
             <DialogTitle>Reject KYC</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting the KYC documents. The patient will see this reason and be prompted to resubmit.
+              Please provide a reason for rejecting the KYC documents. The patient will see this
+              reason and be prompted to resubmit.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -663,11 +888,28 @@ export function ApprovalsList() {
             </div>
           </div>
           <DialogFooter>
-            <Button size="sm" variant="outline" onClick={() => setRejectingPatient(null)} disabled={isSubmitting}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setRejectingPatient(null)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button size="sm" variant="destructive" onClick={handleRejectConfirm} disabled={!rejectionReason.trim() || isSubmitting}>
-              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin mr-1" />Rejecting...</> : 'Confirm Rejection'}
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={!rejectionReason.trim() || isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  Rejecting...
+                </>
+              ) : (
+                'Confirm Rejection'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -11,11 +11,21 @@ import { ApprovalsList } from './ApprovalsList';
 
 interface PatientRow {
   patientId: string;
+  regNo?: string | null;
   fullName: string;
   mobileNumber: string;
   email: string | null;
   dob: string;
   aadharNumber: string | null;
+  govtId?: string | null;
+  govtIdNo?: string | null;
+  cityOrDistrict?: string | null;
+  pincode?: string | null;
+  state?: string | null;
+  country?: string | null;
+  streetAddress?: string | null;
+  ngoPartner?: string | null;
+  criticalIllness?: string | null;
   kycStatus: string;
   registrationStatus: string;
   registrationDate: string;
@@ -34,11 +44,26 @@ function getKycBadge(status: string) {
   return <Badge className="bg-gray-100 text-gray-500 border-gray-200 font-normal">{status}</Badge>;
 }
 
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return '—';
+const formatDate = (input: string | number | undefined | null) => {
+  if (!input && input !== 0) return '—';
   try {
-    return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  } catch { return dateStr; }
+    let t: number;
+    if (typeof input === 'number') {
+      // seconds vs milliseconds
+      t = input > 1e12 ? input : input * 1000;
+    } else if (/^\d+$/.test(String(input))) {
+      // numeric string
+      const n = parseInt(String(input), 10);
+      t = n > 1e12 ? n : n * 1000;
+    } else {
+      t = new Date(String(input)).getTime();
+    }
+    const d = new Date(t);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return '—';
+  }
 };
 
 function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoading: boolean }) {
@@ -64,11 +89,13 @@ function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoadi
         <TableHeader>
           <TableRow className="bg-gray-50/50 hover:bg-gray-50/50 border-b border-gray-100">
             <TableHead className="font-normal text-gray-500 py-6 pl-8">Patient</TableHead>
+            <TableHead className="font-normal text-gray-500">Reg No</TableHead>
             <TableHead className="font-normal text-gray-500">Contact</TableHead>
-            <TableHead className="font-normal text-gray-500">Aadhar</TableHead>
+            <TableHead className="font-normal text-gray-500">Aadhar / Govt ID</TableHead>
             <TableHead className="font-normal text-gray-500">Registered</TableHead>
             <TableHead className="font-normal text-gray-500">Status</TableHead>
             <TableHead className="font-normal text-gray-500">Income / Discount</TableHead>
+            <TableHead className="font-normal text-gray-500">NGO / Illness</TableHead>
             <TableHead className="font-normal text-gray-500">KYC Doc</TableHead>
           </TableRow>
         </TableHeader>
@@ -93,6 +120,9 @@ function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoadi
                 </div>
               </TableCell>
               <TableCell>
+                <span className="text-sm text-gray-700">{p.regNo || '—'}</span>
+              </TableCell>
+              <TableCell>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <Phone className="w-3.5 h-3.5 text-gray-400" />
@@ -107,10 +137,11 @@ function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoadi
                 </div>
               </TableCell>
               <TableCell>
-                {p.aadharNumber ? (
-                  <span className="text-sm text-gray-600 font-light tracking-wider">
-                    {p.aadharNumber.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}
-                  </span>
+                {p.aadharNumber || p.govtIdNo ? (
+                  <div className="text-sm text-gray-600 font-light tracking-wider">
+                    {p.aadharNumber ? p.aadharNumber.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3') : p.govtIdNo}
+                    {p.govtId && <div className="text-xs text-gray-400 font-light mt-1">{p.govtId}</div>}
+                  </div>
                 ) : (
                   <span className="text-sm text-gray-300">—</span>
                 )}
@@ -137,6 +168,12 @@ function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoadi
                   ) : (
                     !p.incomeLevel && <span className="text-sm text-gray-300">—</span>
                   )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm text-gray-700 space-y-1">
+                  {p.ngoPartner ? <div>{p.ngoPartner}</div> : null}
+                  {p.criticalIllness ? <div className="text-xs text-gray-500">{p.criticalIllness}</div> : null}
                 </div>
               </TableCell>
               <TableCell>
@@ -184,17 +221,27 @@ export function PatientList() {
     });
     const mapped: PatientRow[] = deduped.map((p: any) => ({
       patientId: p.patientId || String(p.id),
+      regNo: p.regNo || p.regno || null,
       fullName: p.fullName || '',
-      mobileNumber: p.mobileNumber || '',
+      mobileNumber: p.mobileNumber || p.mothersMobileNumber || p.fathersMobileNumber || '',
       email: p.email || null,
       dob: p.dob || '',
       aadharNumber: p.aadharNumber || null,
+      govtId: p.govtId || null,
+      govtIdNo: p.govtIdNo || p.govtIdNumber || null,
+      cityOrDistrict: p.city_or_District || p.cityOrDistrict || null,
+      pincode: p.pincode || null,
+      state: p.state || null,
+      country: p.country || null,
+      streetAddress: p.streetAddress || null,
+      ngoPartner: p.ngoPartner || null,
+      criticalIllness: p.criticalIllness || null,
       kycStatus: p.kycStatus || '',
       registrationStatus: p.registrationStatus || '',
       registrationDate: p.registrationDate || p.createdDate || '',
       discountPercentage: p.discountPercentage ?? null,
-      incomeLevel: p.incomeLevel || null,
-      kycDocumentUrl: p.kycDocumentUrl || null,
+      incomeLevel: p.incomeLevel || p.annualIncome || null,
+      kycDocumentUrl: p.kycDocumentUrl || p.kyCdocURL || p.kycDocURL || null,
     }));
     mapped.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
     return mapped;
@@ -215,7 +262,7 @@ export function PatientList() {
   const loadApproved = async () => {
     setIsApprovedLoading(true);
     try {
-      const approvedRaw = await api.patient.getByStatus('Approved', 'Approved').catch(() => []);
+      const approvedRaw = await api.patient.getByStatus('Approved', 'Completed').catch(() => []);
       setApprovedPatients(mapAndSort(approvedRaw || []));
     } catch (err: any) {
       toast.error(err.message || 'Failed to load approved patients');
@@ -286,7 +333,7 @@ export function PatientList() {
             <PatientTable patients={approvedPatients} isLoading={isApprovedLoading} />
           </TabsContent>
           <TabsContent value="pending" className="mt-0 outline-none">
-            <ApprovalsList />
+            <ApprovalsList child={true} />
           </TabsContent>
         </Tabs>
       </CardContent>
