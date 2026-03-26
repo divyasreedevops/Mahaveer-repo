@@ -161,17 +161,7 @@ export function ApprovalsList({ child }: { child?: boolean }) {
         return true;
       });
 
-      // Sort by registrationDate descending (newest first)
-      const toMs = (v: string | number | null | undefined): number => {
-        if (!v && v !== 0) return 0;
-        if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
-        if (/^\d+$/.test(String(v))) {
-          const n = parseInt(String(v), 10);
-          return n > 1e12 ? n : n * 1000;
-        }
-        return new Date(String(v)).getTime() || 0;
-      };
-      deduped.sort((a, b) => toMs(b.registrationDate) - toMs(a.registrationDate));
+      deduped.sort((a, b) => parseInt(b.id || '0', 10) - parseInt(a.id || '0', 10));
 
       setPendingApprovals(deduped);
       if (levelsRaw && Array.isArray(levelsRaw) && levelsRaw.length > 0) {

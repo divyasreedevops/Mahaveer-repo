@@ -45,7 +45,7 @@ const EMPTY: KYCFormData = {
   govtIdType: 'Aadhaar Card',
   aadhaarNumber: '',
   incomeDocument: new File([], ''),
-  annualFamilyIncome: '50000_100000',
+  annualFamilyIncome: '',
   guardianName: '',
   guardianRelation: 'Father',
   guardianMobile: '',
