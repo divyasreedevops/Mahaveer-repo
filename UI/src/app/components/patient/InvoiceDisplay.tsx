@@ -38,9 +38,7 @@ export function InvoiceDisplay() {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-gray-700">Medicine</TableHead>
-                <TableHead className="text-right text-gray-700">MRP</TableHead>
-                <TableHead className="text-right text-gray-700">Discount</TableHead>
-                <TableHead className="text-right text-gray-700">Final Price</TableHead>
+                <TableHead className="text-right text-gray-700">Price</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,9 +48,16 @@ export function InvoiceDisplay() {
                     {item.medicineName}
                     {!item.isAvailable && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
                   </TableCell>
-                  <TableCell className="text-right text-gray-600">₹{item.mrp.toFixed(2)}</TableCell>
-                  <TableCell className="text-right text-gray-600">₹{item.discount.toFixed(2)}</TableCell>
-                  <TableCell className="text-right text-gray-600">₹{item.finalPrice.toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-gray-600">
+                    {item.mrp !== item.finalPrice ? (
+                      <span className="flex flex-col items-end gap-0.5">
+                        <span className="line-through text-gray-400 text-xs">₹{item.mrp.toFixed(2)}</span>
+                        <span className="text-gray-800 font-normal">₹{item.finalPrice.toFixed(2)}</span>
+                      </span>
+                    ) : (
+                      <span>₹{item.finalPrice.toFixed(2)}</span>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -62,15 +67,6 @@ export function InvoiceDisplay() {
         <Separator />
 
         <div className="space-y-3 text-gray-700">
-          <div className="flex justify-between text-lg">
-            <span>Subtotal:</span>
-            <span>₹{invoice.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-lg text-green-600">
-            <span>Discount:</span>
-            <span>- ₹{invoice.totalDiscount.toFixed(2)}</span>
-          </div>
-          <Separator />
           <div className="flex justify-between text-xl font-normal">
             <span>Total Amount:</span>
             <span>₹{invoice.totalAmount.toFixed(2)}</span>

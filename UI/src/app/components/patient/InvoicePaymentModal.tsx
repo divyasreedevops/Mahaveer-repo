@@ -4,7 +4,7 @@ import { Invoice } from '@/app/context/AppContextDef';
 import { useApp } from '@/app/context/AppContext';
 import { api } from '@/app/services/api';
 import { toast } from 'sonner';
-import { X, CreditCard, ChevronLeft, Loader2, Smartphone, Building2, Wallet } from 'lucide-react';
+import { X, CreditCard, ChevronLeft, Loader2, Smartphone, Building2, Wallet, QrCode } from 'lucide-react';
 
 interface InvoicePaymentModalProps {
   patientId: string;
@@ -14,7 +14,7 @@ interface InvoicePaymentModalProps {
   onClose: () => void;
 }
 
-type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';
+type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet' | 'scanpay';
 
 const PAYMENT_METHODS: {
   id: PaymentMethod;
@@ -45,6 +45,12 @@ const PAYMENT_METHODS: {
     label: 'Wallet',
     description: 'Paytm, Amazon Pay, Mobikwik',
     icon: <Wallet className="w-5 h-5" />,
+  },
+  {
+    id: 'scanpay',
+    label: 'Scan & Pay',
+    description: 'Scan QR code to pay instantly',
+    icon: <QrCode className="w-5 h-5" />,
   },
 ];
 
@@ -125,11 +131,7 @@ export function InvoicePaymentModal({
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
                       <th className="px-4 py-3 text-left font-normal text-gray-600">Medicine</th>
-                      <th className="px-4 py-3 text-right font-normal text-gray-600">MRP</th>
-                      <th className="px-4 py-3 text-right font-normal text-gray-600">Discount</th>
-                      <th className="px-4 py-3 text-right font-normal text-gray-600">
-                        Final Price
-                      </th>
+                      <th className="px-4 py-3 text-right font-normal text-gray-600">Price</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -141,12 +143,6 @@ export function InvoicePaymentModal({
                             <p className="text-xs text-red-500 font-light">Unavailable</p>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-700 font-light">
-                          ₹{item.mrp}
-                        </td>
-                        <td className="px-4 py-3 text-right text-red-500 font-light">
-                          -₹{item.discount}
-                        </td>
                         <td className="px-4 py-3 text-right text-gray-800 font-normal">
                           ₹{item.finalPrice}
                         </td>
@@ -154,7 +150,7 @@ export function InvoicePaymentModal({
                     ))}
                     {invoice.items.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="px-4 py-6 text-center text-gray-500 font-light">
+                        <td colSpan={2} className="px-4 py-6 text-center text-gray-500 font-light">
                           No items in the invoice.
                         </td>
                       </tr>
@@ -164,16 +160,8 @@ export function InvoicePaymentModal({
               </div>
               {invoice.items.length > 0 && (
                 <>
-                  <div className="space-y-2 border-t border-gray-100 pt-4">
-                    <div className="flex justify-between text-sm text-gray-500 font-light">
-                      <span>Subtotal</span>
-                      <span>₹{invoice.subtotal}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-red-500 font-light">
-                      <span>Discount</span>
-                      <span>-₹{invoice.totalDiscount}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-normal text-blue-600 pt-2 border-t border-dashed border-gray-100">
+                  <div className="border-t border-gray-100 pt-4">
+                    <div className="flex justify-between text-lg font-normal text-blue-600">
                       <span>Total Amount</span>
                       <span>₹{invoice.totalAmount}</span>
                     </div>
@@ -227,6 +215,58 @@ export function InvoicePaymentModal({
                   </button>
                 ))}
               </div>
+
+              {/* QR Code for Scan & Pay */}
+              {selectedMethod === 'scanpay' && (
+                <div className="flex flex-col items-center gap-3 p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="text-sm font-normal text-gray-700">Scan the QR code to pay</p>
+                  {/* Dummy QR code using a public QR generator */}
+                  <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+                    <svg
+                      width="160"
+                      height="160"
+                      viewBox="0 0 160 160"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="block"
+                    >
+                      {/* Outer border squares */}
+                      <rect x="10" y="10" width="50" height="50" rx="4" fill="none" stroke="#111" strokeWidth="5" />
+                      <rect x="20" y="20" width="30" height="30" rx="2" fill="#111" />
+                      <rect x="100" y="10" width="50" height="50" rx="4" fill="none" stroke="#111" strokeWidth="5" />
+                      <rect x="110" y="20" width="30" height="30" rx="2" fill="#111" />
+                      <rect x="10" y="100" width="50" height="50" rx="4" fill="none" stroke="#111" strokeWidth="5" />
+                      <rect x="20" y="110" width="30" height="30" rx="2" fill="#111" />
+                      {/* Center pattern */}
+                      <rect x="70" y="10" width="10" height="10" fill="#111" />
+                      <rect x="70" y="30" width="10" height="10" fill="#111" />
+                      <rect x="70" y="50" width="10" height="20" fill="#111" />
+                      <rect x="10" y="70" width="20" height="10" fill="#111" />
+                      <rect x="40" y="70" width="10" height="10" fill="#111" />
+                      <rect x="60" y="70" width="20" height="10" fill="#111" />
+                      <rect x="90" y="70" width="10" height="10" fill="#111" />
+                      <rect x="110" y="70" width="10" height="10" fill="#111" />
+                      <rect x="130" y="70" width="20" height="10" fill="#111" />
+                      <rect x="80" y="80" width="10" height="10" fill="#111" />
+                      <rect x="100" y="80" width="20" height="10" fill="#111" />
+                      <rect x="130" y="80" width="20" height="10" fill="#111" />
+                      <rect x="70" y="90" width="10" height="20" fill="#111" />
+                      <rect x="90" y="100" width="10" height="10" fill="#111" />
+                      <rect x="110" y="100" width="10" height="10" fill="#111" />
+                      <rect x="130" y="100" width="20" height="10" fill="#111" />
+                      <rect x="80" y="110" width="10" height="10" fill="#111" />
+                      <rect x="100" y="120" width="20" height="10" fill="#111" />
+                      <rect x="70" y="130" width="10" height="20" fill="#111" />
+                      <rect x="90" y="130" width="10" height="10" fill="#111" />
+                      <rect x="110" y="130" width="10" height="20" fill="#111" />
+                      <rect x="130" y="130" width="20" height="10" fill="#111" />
+                      <rect x="130" y="120" width="10" height="10" fill="#111" />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-gray-400 font-light text-center">
+                    Open any UPI app · Scan · Enter ₹{invoice.totalAmount} · Pay
+                  </p>
+                </div>
+              )}
 
               <div className="pt-2 border-t border-gray-100">
                 <div className="flex justify-between text-lg font-normal text-blue-600 mb-4">

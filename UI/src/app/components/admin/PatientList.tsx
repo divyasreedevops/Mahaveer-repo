@@ -210,7 +210,7 @@ export function PatientList() {
   const [isApprovedLoading, setIsApprovedLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
 
-  const mapAndSort = (raw: any[]): PatientRow[] => {
+  const mapAndSort = (raw: any[], sortBy: 'name' | 'date' = 'name'): PatientRow[] => {
     const list: any[] = raw || [];
     const seen = new Set<string>();
     const deduped = list.filter(p => {
@@ -243,7 +243,11 @@ export function PatientList() {
       incomeLevel: p.incomeLevel || p.annualIncome || null,
       kycDocumentUrl: p.kycDocumentUrl || p.kyCdocURL || p.kycDocURL || null,
     }));
-    mapped.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
+    mapped.sort((a, b) =>
+      sortBy === 'date'
+        ? new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
+        : (a.fullName || '').localeCompare(b.fullName || '')
+    );
     return mapped;
   };
 

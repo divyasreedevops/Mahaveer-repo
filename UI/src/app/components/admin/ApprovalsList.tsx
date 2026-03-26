@@ -129,7 +129,7 @@ export function ApprovalsList({ child }: { child?: boolean }) {
           discountPercentage: p.discountPercentage || 0,
           kycStatus: 'pending' as const,
           kycRejectionReason: p.kycRejectionReason || null,
-          registrationDate: p.registrationDate || new Date().toISOString(),
+          registrationDate: p.registrationDate || p.createdDate || new Date().toISOString(),
           prescriptions: [],
           rawKycStatus,
           gender: p.gender || null,
@@ -162,9 +162,16 @@ export function ApprovalsList({ child }: { child?: boolean }) {
       });
 
       // Sort by registrationDate descending (newest first)
-      deduped.sort(
-        (a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
-      );
+      const toMs = (v: string | number | null | undefined): number => {
+        if (!v && v !== 0) return 0;
+        if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
+        if (/^\d+$/.test(String(v))) {
+          const n = parseInt(String(v), 10);
+          return n > 1e12 ? n : n * 1000;
+        }
+        return new Date(String(v)).getTime() || 0;
+      };
+      deduped.sort((a, b) => toMs(b.registrationDate) - toMs(a.registrationDate));
 
       setPendingApprovals(deduped);
       if (levelsRaw && Array.isArray(levelsRaw) && levelsRaw.length > 0) {

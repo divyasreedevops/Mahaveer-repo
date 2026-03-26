@@ -99,10 +99,7 @@ export function PatientDetailsForm() {
         toast.error('Valid 10-digit mobile is required');
         return false;
       }
-      if (!form.annualFamilyIncome) {
-        toast.error('Please select annual family income');
-        return false;
-      }
+
     }
     if (step === 2) {
       if (!form.city.trim()) {
@@ -359,7 +356,7 @@ export function PatientDetailsForm() {
             </div>
             <div className="space-y-1">
               <Label className={labelCls}>
-                Annual Family Income <span className="text-red-400">*</span>
+                Annual Family Income <span className="text-gray-400 text-xs">(optional)</span>
               </Label>
               <Select
                 value={form.annualFamilyIncome || ''}
