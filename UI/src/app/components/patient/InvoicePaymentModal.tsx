@@ -144,7 +144,14 @@ export function InvoicePaymentModal({
                           )}
                         </td>
                         <td className="px-4 py-3 text-right text-gray-800 font-normal">
-                          ₹{item.finalPrice}
+                          {item.mrp !== item.finalPrice ? (
+                            <span className="flex flex-col items-end gap-0.5">
+                              <span className="line-through text-gray-400 text-xs">₹{item.mrp.toFixed(2)}</span>
+                              <span className="text-gray-800 font-normal">₹{item.finalPrice.toFixed(2)}</span>
+                            </span>
+                          ) : (
+                            <span>₹{item.finalPrice.toFixed(2)}</span>
+                          )}
                         </td>
                       </tr>
                     ))}
