@@ -29,6 +29,12 @@ const PAYMENT_METHODS: {
     icon: <Smartphone className="w-5 h-5" />,
   },
   {
+    id: 'scanpay',
+    label: 'Scan & Pay',
+    description: 'Scan QR code to pay instantly',
+    icon: <QrCode className="w-5 h-5" />,
+  },
+  {
     id: 'card',
     label: 'Credit / Debit Card',
     description: 'Visa, Mastercard, RuPay',
@@ -45,13 +51,7 @@ const PAYMENT_METHODS: {
     label: 'Wallet',
     description: 'Paytm, Amazon Pay, Mobikwik',
     icon: <Wallet className="w-5 h-5" />,
-  },
-  {
-    id: 'scanpay',
-    label: 'Scan & Pay',
-    description: 'Scan QR code to pay instantly',
-    icon: <QrCode className="w-5 h-5" />,
-  },
+  }
 ];
 
 export function InvoicePaymentModal({
