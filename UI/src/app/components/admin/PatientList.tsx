@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/app/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Button } from '@/app/components/ui/button';
-import { Users, Phone, Mail, Calendar, User, Loader2, RefreshCw, ExternalLink, FileX, Percent, ShieldCheck } from 'lucide-react';
+import { Users, Phone, Mail, Calendar, User, Loader2, RefreshCw, ExternalLink, FileX, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApprovalsList } from './ApprovalsList';
 
@@ -94,7 +94,7 @@ function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoadi
             <TableHead className="font-normal text-gray-500">Aadhar / Govt ID</TableHead>
             <TableHead className="font-normal text-gray-500">Registered</TableHead>
             <TableHead className="font-normal text-gray-500">Status</TableHead>
-            <TableHead className="font-normal text-gray-500">Income / Discount</TableHead>
+            <TableHead className="font-normal text-gray-500">Income</TableHead>
             <TableHead className="font-normal text-gray-500">NGO / Illness</TableHead>
             <TableHead className="font-normal text-gray-500">KYC Doc</TableHead>
           </TableRow>
@@ -159,14 +159,8 @@ function PatientTable({ patients, isLoading }: { patients: PatientRow[]; isLoadi
                       <ShieldCheck className="w-3 h-3 text-gray-400" />
                       <span>{p.incomeLevel}</span>
                     </div>
-                  ) : null}
-                  {p.discountPercentage != null && p.discountPercentage > 0 ? (
-                    <div className="flex items-center gap-1.5">
-                      <Percent className="w-3 h-3 text-green-500" />
-                      <span className="text-sm text-green-600 font-normal">{p.discountPercentage}%</span>
-                    </div>
                   ) : (
-                    !p.incomeLevel && <span className="text-sm text-gray-300">—</span>
+                    <span className="text-sm text-gray-300">—</span>
                   )}
                 </div>
               </TableCell>

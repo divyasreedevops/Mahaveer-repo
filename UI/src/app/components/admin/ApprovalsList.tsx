@@ -27,7 +27,6 @@ import {
   DialogTitle,
 } from '@/app/components/ui/dialog';
 import { Label } from '@/app/components/ui/label';
-import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import {
   Select,
@@ -54,7 +53,7 @@ import {
   Percent,
 } from 'lucide-react';
 import type { Patient } from '@/app/context/AppContext';
-import { INCOME_LABELS, INCOME_DISCOUNT } from '@/app/context/AppContextDef';
+import { INCOME_LABELS } from '@/app/context/AppContextDef';
 
 interface PendingPatientItem extends Patient {
   rawKycStatus: string;
@@ -92,14 +91,13 @@ export function ApprovalsList({ child }: { child?: boolean }) {
   const [rejectionReason, setRejectionReason] = useState('');
 
   const [incomeLevel, setIncomeLevel] = useState<string>('Medium');
-  const [discountPercentage, setDiscountPercentage] = useState<number>(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadData = async () => {
     setLoadingList(true);
     try {
       const [submittedRaw, levelsRaw] = await Promise.all([
-        api.patient.getByStatus('Completed', 'Submitted').catch(() => []),
+        api.patient.getByStatus('Approved', 'Submitted').catch(() => []),
         api.common.getIncomeLevels().catch(() => []),
       ]);
 
@@ -167,13 +165,11 @@ export function ApprovalsList({ child }: { child?: boolean }) {
       if (levelsRaw && Array.isArray(levelsRaw) && levelsRaw.length > 0) {
         const levelObjects = levelsRaw.map((l: any) => ({
           name: typeof l === 'string' ? l : l.incomeLevelName || l.name || l.label || String(l),
-          discount: typeof l === 'object' ? l.discountPercentage || 0 : 0,
         }));
         const levels = levelObjects.map((l) => l.name);
-        setIncomeLevelsData(levelObjects);
+        setIncomeLevelsData(levelObjects.map((l) => ({ name: l.name, discount: 0 })));
         setIncomeOptions(levels);
         setIncomeLevel(levels[0]);
-        setDiscountPercentage(levelObjects[0]?.discount ?? 0);
       }
     } catch (err: any) {
       toast.error('Failed to load pending approvals');
@@ -189,9 +185,7 @@ export function ApprovalsList({ child }: { child?: boolean }) {
   const handleApproveClick = (patient: PendingPatientItem) => {
     setSelectedPatient(patient);
     const firstLevel = incomeOptions[0] || 'Low';
-    const firstDiscount = incomeLevelsData[0]?.discount ?? 50;
     setIncomeLevel(firstLevel);
-    setDiscountPercentage(firstDiscount);
   };
 
   const handleApproveConfirm = async () => {
@@ -199,7 +193,7 @@ export function ApprovalsList({ child }: { child?: boolean }) {
     setIsSubmitting(true);
     try {
       const dbId = parseInt(selectedPatient.id);
-      await api.admin.approveKyc({ id: dbId, incomeLevel, discountPercentage });
+      await api.admin.approveKyc({ id: dbId, incomeLevel: '-', discountPercentage: 0 });
       const approveRes = await api.admin.updateRegStatus({
         id: dbId,
         patientId: selectedPatient.patientId || generatePatientId(dbId),
@@ -250,20 +244,6 @@ export function ApprovalsList({ child }: { child?: boolean }) {
 
   const handleIncomeLevelChange = (value: string) => {
     setIncomeLevel(value);
-    const found = incomeLevelsData.find((l) => l.name === value);
-    if (found) {
-      setDiscountPercentage(found.discount);
-    } else {
-      // Fallback for unknown levels
-      const lower = value.toLowerCase();
-      if (lower.includes('bpl') || lower.includes('below') || lower === 'low') {
-        setDiscountPercentage(80);
-      } else if (lower.includes('apl') || lower === 'medium' || lower.includes('middle')) {
-        setDiscountPercentage(50);
-      } else if (lower === 'high' || lower.includes('general') || lower.includes('upper')) {
-        setDiscountPercentage(20);
-      }
-    }
   };
 
   return (
@@ -641,7 +621,7 @@ export function ApprovalsList({ child }: { child?: boolean }) {
           <DialogHeader>
             <DialogTitle>Approve Patient</DialogTitle>
             <DialogDescription>
-              Review patient details and set income level with discount percentage.
+              Review patient details and confirm approval.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -783,52 +763,6 @@ export function ApprovalsList({ child }: { child?: boolean }) {
                 )}
               </div>
             )}
-
-            <div className="space-y-3 border border-purple-100 rounded-xl p-4 bg-purple-50/30">
-              <p className="text-sm font-medium text-purple-700 flex items-center gap-2">
-                <Percent className="w-4 h-4" />
-                Set Subsidy Discount
-              </p>
-              {selectedPatient?.annualFamilyIncome &&
-                INCOME_DISCOUNT[selectedPatient.annualFamilyIncome as string] !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Based on declared income (
-                    {INCOME_LABELS[selectedPatient.annualFamilyIncome as string]}), suggested
-                    discount is{' '}
-                    <strong>
-                      {INCOME_DISCOUNT[selectedPatient.annualFamilyIncome as string]}%
-                    </strong>
-                  </p>
-                )}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-gray-600">Income Level</Label>
-                  <Select value={incomeLevel} onValueChange={handleIncomeLevelChange}>
-                    <SelectTrigger className="rounded-lg border-gray-200 text-sm">
-                      <SelectValue placeholder="Select income level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {incomeOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-gray-600">Discount %</Label>
-                  <Input
-                    type="number"
-                    value={discountPercentage.toString()}
-                    onChange={(e) => setDiscountPercentage(Number(e.target.value))}
-                    min={0}
-                    max={100}
-                    className="rounded-lg border-gray-200 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button

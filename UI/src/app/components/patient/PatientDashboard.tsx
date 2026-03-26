@@ -413,14 +413,6 @@ export function PatientDashboard() {
             </div>
             <div className="flex items-center gap-8 text-center sm:text-right border-t sm:border-t-0 sm:border-l border-gray-100 pt-6 sm:pt-0 sm:pl-8 w-full sm:w-auto">
               <div>
-                <p className="text-2xl font-normal text-blue-600">
-                  {currentPatient.discountPercentage}%
-                </p>
-                <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest">
-                  Active Discount
-                </p>
-              </div>
-              <div>
                 <p className="text-2xl font-normal text-gray-800">{activePrescriptions.length}</p>
                 <p className="text-[10px] text-gray-400 font-light uppercase tracking-widest">
                   Active Orders

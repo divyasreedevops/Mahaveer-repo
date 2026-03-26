@@ -607,7 +607,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!dbId) { toast.error('Patient DB ID not found'); return; }
     setIsLoading(true);
     try {
-      await api.admin.approveKyc({ id: dbId, incomeLevel, discountPercentage });
+      await api.admin.approveKyc({ id: dbId, incomeLevel: '-', discountPercentage: 0 });
       await api.admin.updateRegStatus({ id: dbId, patientId, registrationStatus: 'Approved' });
       setAllPatients(prev => prev.map(p => p.patientId === patientId ? { ...p, kycStatus: 'approved' as const, kycRejectionReason: null } : p));
       toast.success('KYC approved!');

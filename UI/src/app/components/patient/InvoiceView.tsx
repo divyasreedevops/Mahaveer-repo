@@ -117,9 +117,7 @@ export function InvoiceView({ patientData, updateData }: Props) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Medicine</TableHead>
-                    <TableHead className="text-right">MRP</TableHead>
-                    <TableHead className="text-right">Discount</TableHead>
-                    <TableHead className="text-right">Final Price</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -129,8 +127,6 @@ export function InvoiceView({ patientData, updateData }: Props) {
                         {item.medicineName}
                         {!item.isAvailable && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
                       </TableCell>
-                      <TableCell className="text-right">₹{item.mrp.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">₹{item.discount.toFixed(2)}</TableCell>
                       <TableCell className="text-right">₹{item.finalPrice.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
@@ -142,25 +138,10 @@ export function InvoiceView({ patientData, updateData }: Props) {
 
             {/* Totals */}
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal:</span>
-                <span>₹{invoice.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-green-600">
-                <span>Discount:</span>
-                <span>- ₹{invoice.totalDiscount.toFixed(2)}</span>
-              </div>
-              <Separator />
               <div className="flex justify-between text-lg">
                 <strong>Total Amount:</strong>
                 <strong className="text-green-600">₹{invoice.totalAmount.toFixed(2)}</strong>
               </div>
-            </div>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-900">
-                <strong>Great News!</strong> You're saving ₹{invoice.totalDiscount.toFixed(2)} with our subsidy program.
-              </p>
             </div>
 
             <Button 
